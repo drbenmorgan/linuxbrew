@@ -11,10 +11,14 @@ class Clhep < Formula
   end
 
   depends_on "cmake" => :build
+  option :cxx11
 
   def install
+    ENV.cxx11 if build.cxx11?
     mkdir "clhep-build" do
-      system "cmake", "../CLHEP", *std_cmake_args
+      args = std_cmake_args
+      args << "-DCLHEP_BUILD_CXXSTD=c++11" if build.cxx11?
+      system "cmake", "../CLHEP", *args
       system "make", "install"
     end
   end
