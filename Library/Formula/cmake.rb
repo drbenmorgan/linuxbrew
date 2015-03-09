@@ -97,6 +97,10 @@ class Cmake < Formula
     system "./bootstrap", *args
     system "make"
     system "make", "install"
+  
+    bash_completion.install_symlink share/"cmake/completions/cmake" => "cmake.sh"
+    bash_completion.install_symlink share/"cmake/completions/cpack" => "cpack.sh"
+    bash_completion.install_symlink share/"cmake/completions/ctest" => "ctest.sh"
   end
 
   test do
