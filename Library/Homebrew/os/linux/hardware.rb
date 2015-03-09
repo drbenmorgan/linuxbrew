@@ -1,8 +1,8 @@
 module LinuxCPUs
   OPTIMIZATION_FLAGS = {
-    :penryn => '-march=core2 -msse4.1',
-    :core2 => '-march=core2',
-    :core => '-march=prescott',
+    :penryn => '',
+    :core2 => '',
+    :core => '',
   }.freeze
   def optimization_flags; OPTIMIZATION_FLAGS; end
 

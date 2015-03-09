@@ -48,8 +48,8 @@ module Stdenv
       self["CMAKE_FRAMEWORK_PATH"] = frameworks.to_s
     end
 
-    # Os is the default Apple uses for all its stuff so let's trust them
-    set_cflags "-Os #{SAFE_CFLAGS_FLAGS}"
+    # O2 is the default for rpm builds on SUSE Linux, so trust that
+    set_cflags "-O2 #{SAFE_CFLAGS_FLAGS}"
 
     append 'LDFLAGS', '-Wl,-headerpad_max_install_names' if OS.mac?
 
@@ -211,7 +211,7 @@ module Stdenv
   end
 
   def minimal_optimization
-    set_cflags "-Os #{SAFE_CFLAGS_FLAGS}"
+    set_cflags "-O2 #{SAFE_CFLAGS_FLAGS}"
     macosxsdk unless MacOS::CLT.installed?
   end
   def no_optimization
