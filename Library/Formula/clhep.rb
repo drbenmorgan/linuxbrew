@@ -17,6 +17,7 @@ class Clhep < Formula
     ENV.cxx11 if build.cxx11?
     mkdir "clhep-build" do
       args = std_cmake_args
+      args << "-DCMAKE_BUILD_WITH_INSTALL_RPATH=ON"
       args << "-DCLHEP_BUILD_CXXSTD=c++11" if build.cxx11?
       system "cmake", "../CLHEP", *args
       system "make", "install"
