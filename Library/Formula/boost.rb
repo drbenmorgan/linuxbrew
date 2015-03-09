@@ -82,7 +82,10 @@ class Boost < Formula
 
     # Boost.Log cannot be built using Apple GCC at the moment. Disabled
     # on such systems.
-    without_libraries << "log" if ENV.compiler == :gcc || ENV.compiler == :llvm
+    if OS.mac?
+      without_libraries << "log" if ENV.compiler == :gcc || ENV.compiler == :llvm
+    end
+    
     without_libraries << "mpi" if build.without? "mpi"
 
     bootstrap_args << "--without-libraries=#{without_libraries.join(",")}"
@@ -127,7 +130,7 @@ class Boost < Formula
     s = ""
     # ENV.compiler doesn't exist in caveats. Check library availability
     # instead.
-    if Dir["#{lib}/libboost_log*"].empty?
+    if OS.mac? and Dir["#{lib}/libboost_log*"].empty?
       s += <<-EOS.undent
 
       Building of Boost.Log is disabled because it requires newer GCC or Clang.
