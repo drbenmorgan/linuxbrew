@@ -1,24 +1,14 @@
 class Ffmpeg < Formula
   homepage "https://ffmpeg.org/"
-  stable do
-    url "https://www.ffmpeg.org/releases/ffmpeg-2.5.4.tar.bz2"
-    sha1 "e7d0bab14e82876762531a883c6b48918631d48c"
+  url "https://ffmpeg.org/releases/ffmpeg-2.6.1.tar.bz2"
+  sha256 "a4f6388706ee2daba9d35d2aa018ae5feeb450efa716555e011a6543d43ec7c1"
 
-    # Fixes -framework flags for 10.7 and lower;
-    # fixed upstream, can be removed in the next release.
-    # https://trac.ffmpeg.org/ticket/4238
-    patch do
-      url "http://git.videolan.org/?p=ffmpeg.git;a=commitdiff_plain;h=83808ee7e9e89b0c83d5ecd94b35952c44716b68"
-      sha1 "918586c158e1231a8d59a78e6f05cedc83824d68"
-    end
-  end
-
-  head "git://git.videolan.org/ffmpeg.git"
+  head "https://git.videolan.org/ffmpeg.git"
 
   bottle do
-    sha1 "1d2f2630e86a06519f36263914ab79dc2f2fef72" => :yosemite
-    sha1 "d2dcb0fd8c650ad8b106ab3ab4fcd0b5512eb6aa" => :mavericks
-    sha1 "cddc9c78521770bc529e85f80f842dff678bc1e6" => :mountain_lion
+    sha256 "8bc0cb43f99a7004aada9969875e551a24ebe2e57b8c620aa77b70372ba7fa0f" => :yosemite
+    sha256 "2ab2f322d8a1ce26af77b7f86e45e8af1c1cf6f01a51d05e460a1282ab84cbec" => :mavericks
+    sha256 "dd2629269914f801e5c16b5c8ba3abebbc48ab7417a54852f1cb74aee8c04875" => :mountain_lion
   end
 
   option "without-x264", "Disable H.264 encoder"
@@ -45,7 +35,7 @@ class Ffmpeg < Formula
   depends_on "pkg-config" => :build
 
   # manpages won't be built without texi2html
-  depends_on "texi2html" => :build if MacOS.version >= :mountain_lion
+  depends_on "texi2html" => :build
   depends_on "yasm" => :build
 
   depends_on "x264" => :recommended
@@ -135,7 +125,7 @@ class Ffmpeg < Formula
     end
 
     # A bug in a dispatch header on 10.10, included via CoreFoundation,
-    # prevents GCC from building VDA support. GCC has no probles on
+    # prevents GCC from building VDA support. GCC has no problems on
     # 10.9 and earlier.
     # See: https://github.com/Homebrew/homebrew/issues/33741
     if MacOS.version < :yosemite || ENV.compiler == :clang
@@ -145,7 +135,7 @@ class Ffmpeg < Formula
     end
 
     # For 32-bit compilation under gcc 4.2, see:
-    # http://trac.macports.org/ticket/20938#comment:22
+    # https://trac.macports.org/ticket/20938#comment:22
     ENV.append_to_cflags "-mdynamic-no-pic" if Hardware.is_32_bit? && Hardware::CPU.intel? && ENV.compiler == :clang
 
     system "./configure", *args

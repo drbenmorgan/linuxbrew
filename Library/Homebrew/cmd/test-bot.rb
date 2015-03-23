@@ -457,7 +457,6 @@ module Homebrew
         if formula.stable? && !ARGV.include?('--no-bottle')
           bottle_args = ["--rb", canonical_formula_name]
           if @tap
-            tap_user, tap_repo = @tap.split "/"
             bottle_args << "--root-url=#{BottleSpecification::DEFAULT_DOMAIN}/#{Bintray.repository(@tap)}"
           end
           bottle_args << { :puts_output_on_success => true }
@@ -506,7 +505,9 @@ module Homebrew
     def homebrew
       @category = __method__
       test "brew", "tests" unless OS.linux?
-      test "brew", "readall"
+      readall_args = []
+      readall_args << "--syntax" if MacOS.version >= :mavericks
+      test "brew", "readall", *readall_args
     end
 
     def cleanup_before
@@ -569,8 +570,6 @@ module Homebrew
 
     def formulae
       changed_formulae_dependents = {}
-      dependencies = []
-      non_dependencies = []
 
       @formulae.each do |formula|
         formula_dependencies = Utils.popen_read("brew", "deps", formula).split("\n")
@@ -620,7 +619,7 @@ module Homebrew
       tap ||= bot_argv.value('tap')
     end
 
-    tap.gsub! /homebrew\/homebrew-/i, "Homebrew/" if tap
+    tap.gsub!(/homebrew\/homebrew-/i, "Homebrew/") if tap
 
     git_url = ENV['UPSTREAM_GIT_URL'] || ENV['GIT_URL']
     if !tap && git_url
@@ -789,9 +788,9 @@ module Homebrew
     any_errors = false
     if ARGV.named.empty?
       # With no arguments just build the most recent commit.
-      test = Test.new('HEAD', tap)
-      any_errors = !test.run
-      tests << test
+      head_test = Test.new('HEAD', tap)
+      any_errors = !head_test.run
+      tests << head_test
     else
       ARGV.named.each do |argument|
         test_error = false
@@ -826,7 +825,7 @@ module Homebrew
 
           if step.has_output?
             # Remove invalid XML CData characters from step output.
-            output = step.output.delete("\000\a\b\e\f")
+            output = step.output.delete("\000\a\b\e\f\x2\x1f")
 
             if output.bytesize > BYTES_IN_1_MEGABYTE
               output = "truncated output to 1MB:\n" \

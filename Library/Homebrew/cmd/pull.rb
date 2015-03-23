@@ -6,6 +6,8 @@ require 'formula'
 require 'cmd/tap'
 
 module Homebrew
+  HOMEBREW_PULL_API_REGEX = %r{https://api\.github\.com/repos/([\w-]+)/homebrew(-[\w-]+)?/pulls/(\d+)}
+
   def tap arg
     match = arg.match(%r[homebrew-([\w-]+)/])
     match[1].downcase if match
@@ -48,11 +50,11 @@ module Homebrew
 
   def pull
     if ARGV.empty?
-      onoe 'This command requires at least one argument containing a URL or pull request number'
+      odie 'This command requires at least one argument containing a URL or pull request number'
     end
 
     if ARGV[0] == '--rebase'
-      onoe 'You meant `git pull --rebase`.'
+      odie 'You meant `git pull --rebase`.'
     end
 
     ARGV.named.each do |arg|
@@ -60,11 +62,13 @@ module Homebrew
         url = 'https://github.com/Homebrew/homebrew/pull/' + arg
         issue = arg
       else
-        url_match = arg.match HOMEBREW_PULL_OR_COMMIT_URL_REGEX
-        unless url_match
-          ohai 'Ignoring URL:', "Not a GitHub pull request or commit: #{arg}"
-          next
+        if (api_match = arg.match HOMEBREW_PULL_API_REGEX)
+          _, user, tap, pull = *api_match
+          arg = "https://github.com/#{user}/homebrew#{tap}/pull/#{pull}"
         end
+
+        url_match = arg.match HOMEBREW_PULL_OR_COMMIT_URL_REGEX
+        odie "Not a GitHub pull request or commit: #{arg}" unless url_match
 
         url = url_match[0]
         issue = url_match[3]
@@ -109,7 +113,7 @@ module Homebrew
         begin
           changed_formulae << Formula[name]
         # Make sure we catch syntax errors.
-        rescue Exception => e
+        rescue Exception
           next
         end
       end
@@ -127,8 +131,8 @@ module Homebrew
 
         if ARGV.include? '--bump'
           odie 'Can only bump one changed formula' unless changed_formulae.length == 1
-          f = changed_formulae.first
-          subject = "#{f.name} #{f.version}"
+          formula = changed_formulae.first
+          subject = "#{formula.name} #{formula.version}"
           ohai "New bump commit subject: #{subject}"
           system "/bin/echo -n #{subject} | pbcopy"
           message = "#{subject}\n\n#{message}"
@@ -164,8 +168,6 @@ module Homebrew
         if bintray_user && bintray_key
           repo = Bintray.repository(tap_name)
           changed_formulae.each do |f|
-            # This means the formula has an existing bottle.
-            next if f.bottle
             ohai "Publishing on Bintray:"
             package = Bintray.package f.name
             bottle = Bottle.new(f, f.bottle_specification)
