@@ -1,39 +1,19 @@
-class NoExpatFramework < Requirement
-  def expat_framework
-    "/Library/Frameworks/expat.framework"
-  end
-
-  satisfy :build_env => false do
-    !File.exist? expat_framework
-  end
-
-  def message; <<-EOS.undent
-    Detected #{expat_framework}
-
-    This will be picked up by CMake's build system and likely cause the
-    build to fail, trying to link to a 32-bit version of expat.
-
-    You may need to move this file out of the way to compile CMake.
-    EOS
-  end
-end
-
 class Cmake < Formula
   homepage "http://www.cmake.org/"
-  url "http://www.cmake.org/files/v3.2/cmake-3.2.1.tar.gz"
-  sha1 "53c1fe2aaae3b2042c0fe5de177f73ef6f7b267f"
+  url "http://www.cmake.org/files/v3.2/cmake-3.2.2.tar.gz"
+  sha256 "ade94e6e36038774565f2aed8866415443444fb7a362eb0ea5096e40d5407c78"
   head "http://cmake.org/cmake.git"
 
   bottle do
     cellar :any
-    sha256 "b5eee80616e1e957249c69c00fa374672ef669996f27c71410655e1c2656a856" => :yosemite
-    sha256 "8e3318bda82a7158002ffd37b9ef1eb7424a59db47d9e7a1bd808c9b130c341f" => :mavericks
-    sha256 "cc70078e6c6cfbca7b8939b65c5133e7fcf90c21ba19e5c6a7a84fe174026440" => :mountain_lion
+    sha256 "839ec4e40ec92ae80915edfcef9bd4feb6f788ce95958697f5274fbc4332a4a7" => :yosemite
+    sha256 "835b5731c9febd40ec3c321609bad8bb67390c55b4bcc3a0fd827c8e54315358" => :mavericks
+    sha256 "2f7b63e4c123eb5a87c64ad75f823ab74c3221ec58022980e476d38c9874fc8c" => :mountain_lion
   end
 
   option "without-docs", "Don't build man pages"
+
   depends_on :python => :build if OS.mac? && MacOS.version <= :snow_leopard && build.with?("docs")
-  depends_on "xz" # For LZMA
 
   # The `with-qt` GUI option was removed due to circular dependencies if
   # CMake is built with Qt support and Qt is built with MySQL support as MySQL uses CMake.
@@ -64,8 +44,6 @@ class Cmake < Formula
     sha1 "cd5c22acf6dd69046d6cb6a3920d84ea66bdf62a"
   end
 
-  depends_on NoExpatFramework
-
   def install
     if build.with? "docs"
       ENV.prepend_create_path "PYTHONPATH", buildpath+"sphinx/lib64/python2.6/site-packages"
@@ -82,13 +60,14 @@ class Cmake < Formula
 
     args = %W[
       --prefix=#{prefix}
-      --system-libs
+      --no-system-libs
       --parallel=#{ENV.make_jobs}
-      --no-system-libarchive
-      --no-system-jsoncpp
       --datadir=/share/cmake
       --docdir=/share/doc/cmake
       --mandir=/share/man
+      --system-curl
+      --system-zlib
+      --system-bzip2
     ]
 
     if build.with? "docs"

@@ -2,14 +2,14 @@ require "language/go"
 
 class Vegeta < Formula
   homepage "https://github.com/tsenart/vegeta"
-  url "https://github.com/tsenart/vegeta/archive/v5.5.3.tar.gz"
-  sha1 "f1813f5dc1bbcbd2d0d627c997d41ea7f466919a"
+  url "https://github.com/tsenart/vegeta/archive/v5.6.2.tar.gz"
+  sha1 "76c4b44ebf860343a638a71b2e574a8358b08fd8"
 
   bottle do
     cellar :any
-    sha256 "a8d0252c29c1de7e34088bef3b0626820ee605ed3abc6f918f32c7706d5669aa" => :yosemite
-    sha256 "630824373d85b313faf19576206a1f5a81bd856c1e5dc0add9440d0742d31010" => :mavericks
-    sha256 "f9e4067f952412ae098b536cf7e56b92ff0e48672ec1b7f46ca81a575da24cf4" => :mountain_lion
+    sha256 "b7b3d8bdee9cf09db7ed21d4efd6af7551ab8814417eb73af47a1f28eccee8ec" => :yosemite
+    sha256 "7728471232648de34d8ca376515268602a227c42f358e3317716d945734cdaaa" => :mavericks
+    sha256 "ff254ccd57e84760fd2474d186cddf16f32074321469486eca4d8dfea5afe618" => :mountain_lion
   end
 
   depends_on "go" => :build

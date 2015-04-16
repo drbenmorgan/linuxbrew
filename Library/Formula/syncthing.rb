@@ -1,14 +1,14 @@
 class Syncthing < Formula
-  homepage "http://syncthing.net"
+  homepage "https://syncthing.net/"
   url "https://github.com/syncthing/syncthing.git",
-    :tag => "v0.10.27", :revision => "19e82e93b15ff0d9b95d2e8d2144d7c1d7be3c55"
+    :tag => "v0.10.30", :revision => "3cc4cb0a0b71908ae2d6392f14457e7ca6712278"
 
   head "https://github.com/syncthing/syncthing.git"
 
   bottle do
-    sha256 "10f502d51e4c475cb33807fd70301906c0b3589acb8dbfe2cc1e00b48793499f" => :yosemite
-    sha256 "473bfddaaa4ff8f79de9ff0ee874cc749e793257f2a865021f912bb5e0363544" => :mavericks
-    sha256 "f1ab377ff0cf3aa347a3ac70827906460000dc878da40e354ea59a1a1aa6c3eb" => :mountain_lion
+    sha256 "b2f6ac64a11e19dfddd6f78466050e3d2e0ae977dad51a98c71f1a16326f51f5" => :yosemite
+    sha256 "ee5447e5933cf974e1e33f98c2058f88851921f81975437cab391f60f09b4e39" => :mavericks
+    sha256 "0772de41191b2d666a5473fac4796ae9ecd66ec60f636b4b2661bb3b6da0398f" => :mountain_lion
   end
 
   depends_on "go" => :build

@@ -4,16 +4,17 @@ class Python3 < Formula
   sha1 "7ca5cd664598bea96eec105aa6453223bb6b4456"
 
   bottle do
-    sha1 "b8a3b54597788f38fe056c51b1de207c3e5287fb" => :yosemite
-    sha1 "b8a7e7370052734df0fe4286a4f86993745ddd12" => :mavericks
-    sha1 "c367a9fd8fb3480a3515df39a31dea70c16174d5" => :mountain_lion
+    revision 8
+    sha256 "17b51ee7ae14df6def7c1acb4ab0736c75dbaa4aa114017f3aaf5a8cf175ecd9" => :yosemite
+    sha256 "201741e84461918bd7f5116dc203b4927bef84307e33a0cdf1453c969352dcad" => :mavericks
+    sha256 "4a0b1897fd29f7aa2600b7810c8723ac3e10bdda82a10892744d36a945577c8d" => :mountain_lion
   end
 
   head "https://hg.python.org/cpython", :using => :hg
 
   devel do
-    url "https://www.python.org/ftp/python/3.5.0/Python-3.5.0a2.tgz"
-    sha256 "b15ba6931f5c7231577f3608958ae6616872da536eca3ba8aced820cdda15a18"
+    url "https://www.python.org/ftp/python/3.5.0/Python-3.5.0a3.tgz"
+    sha256 "c711dcc0b0273dde65d642983784168f082771a88dd7c1d899b66a172af9bf8d"
   end
 
   option :universal
@@ -35,13 +36,13 @@ class Python3 < Formula
   skip_clean "bin/easy_install3", "bin/easy_install-3.4", "bin/easy_install-3.5"
 
   resource "setuptools" do
-    url "https://pypi.python.org/packages/source/s/setuptools/setuptools-12.2.tar.gz"
-    sha1 "b36aaa86fe762eb66d2abc860405410158fadfe8"
+    url "https://pypi.python.org/packages/source/s/setuptools/setuptools-15.0.tar.gz"
+    sha256 "718d13adf87f99a45835bb20e0a1c4c036de644cd32b3f112639403aa04ebeb5"
   end
 
   resource "pip" do
-    url "https://pypi.python.org/packages/source/p/pip/pip-6.0.8.tar.gz"
-    sha1 "bd59a468f21b3882a6c9d3e189d40c7ba1e1b9bd"
+    url "https://pypi.python.org/packages/source/p/pip/pip-6.1.0.tar.gz"
+    sha256 "89f120e2ab3d25ab70c36eb28ad4f280fc9ba71736e74d3055f609c1f9173768"
   end
 
   # Homebrew's tcl-tk is built in a standard unix fashion (due to link errors)
@@ -49,10 +50,13 @@ class Python3 < Formula
   # X11.
   patch :DATA if build.with? "brewed-tk"
 
+  def lib_cellar
+    prefix / (OS.mac? ? "Frameworks/Python.framework/Versions/#{xy}" : "") /
+      "lib/python#{xy}"
+  end
+
   def site_packages_cellar
-    prefix/
-      (if OS.mac? then "Frameworks/Python.framework/Versions/#{xy}" end)/
-      "lib/python#{xy}/site-packages"
+    lib_cellar/"site-packages"
   end
 
   # The HOMEBREW_PREFIX location of site-packages.
@@ -91,8 +95,7 @@ class Python3 < Formula
       --datarootdir=#{share}
       --datadir=#{share}
     ]
-
-    args << "--enable-framework=#{frameworks}" if OS.mac?
+    args << (OS.mac? ? "--enable-framework=#{frameworks}" : "--enable-shared")
     args << '--without-gcc' if ENV.compiler == :clang
 
     distutils_fix_superenv(args)
@@ -147,6 +150,13 @@ class Python3 < Formula
     # Remove the site-packages that Python created in its Cellar.
     site_packages_cellar.rmtree
 
+    # These makevars are available through distutils.sysconfig at runtime and
+    # some third-party software packages depend on them
+    inreplace frameworks/"Python.framework/Versions/#{xy}/lib/python#{xy}/config-#{xy}m/Makefile" do |s|
+      s.change_make_var! "LINKFORSHARED",
+                         "-u _PyMac_Error #{opt_prefix}/Frameworks/Python.framework/Versions/#{xy}/Python"
+    end if OS.mac?
+
     %w[setuptools pip].each do |r|
       (libexec/r).install resource(r)
     end
@@ -190,7 +200,7 @@ class Python3 < Formula
     end
 
     # And now we write the distutils.cfg
-    cfg = prefix/"Frameworks/Python.framework/Versions/#{xy}/lib/python#{xy}/distutils/distutils.cfg"
+    cfg = lib_cellar/"distutils/distutils.cfg"
     cfg.atomic_write <<-EOF.undent
       [global]
       verbose=1
@@ -261,16 +271,6 @@ class Python3 < Formula
           # site_packages; prefer the shorter paths
           long_prefix = re.compile(r'#{rack}/[0-9\._abrc]+/Frameworks/Python\.framework/Versions/#{xy}/lib/python#{xy}/site-packages')
           sys.path = [long_prefix.sub('#{site_packages}', p) for p in sys.path]
-
-          # LINKFORSHARED (and python-config --ldflags) return the
-          # full path to the lib (yes, "Python" is actually the lib, not a
-          # dir) so that third-party software does not need to add the
-          # -F/#{HOMEBREW_PREFIX}/Frameworks switch.
-          try:
-              from _sysconfigdata import build_time_vars
-              build_time_vars['LINKFORSHARED'] = '-u _PyMac_Error #{opt_prefix}/Frameworks/Python.framework/Versions/#{xy}/Python'
-          except:
-              pass  # remember: don't print here. Better to fail silently.
 
           # Set the sys.executable to use the opt_prefix
           sys.executable = '#{opt_bin}/python#{xy}'

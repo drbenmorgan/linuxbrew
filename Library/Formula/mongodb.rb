@@ -1,38 +1,31 @@
-require "formula"
 require "language/go"
 
 class Mongodb < Formula
   homepage "https://www.mongodb.org/"
-  url "https://fastdl.mongodb.org/src/mongodb-src-r3.0.0.tar.gz"
-  sha256 "c1fdbb6bbc33eafedc4aa363be2b3cdf1eea8b8eb618d25131c5a30def24aad9"
-
-  # Mongo HEAD now requires mongo-tools, and Golang
-  # https://jira.mongodb.org/browse/SERVER-15806
-  depends_on "go" => :build
-  go_resource "github.com/mongodb/mongo-tools" do
-    url "https://github.com/mongodb/mongo-tools.git",
-      :tag => "r3.0.0",
-      :revision => "e35a2e87876251835fcb60f5eb0c29baca04bc5e"
-  end
+  url "https://fastdl.mongodb.org/src/mongodb-src-r3.0.2.tar.gz"
+  sha256 "010522203cdb9bbff52fbd9fe299b67686bb1256e2e55eb78abf35444f668399"
 
   bottle do
-    revision 1
-    sha256 "e9bb9dce2bc6e728d93e3c8891dba77b665c4928918fc5de6e8ee853431d79d5" => :yosemite
-    sha256 "d292c96a2ea24b3be324b89412cd0a38403afddb00c6b9d17b550f58070d1207" => :mavericks
-    sha256 "80ccc1c2e3b3e334bafdbd0efdb55f783fd8a4f5f4f440dd08daa1db9332601e" => :mountain_lion
+    sha256 "1f770eefcd53060a807d85a8007d426e685f191cc9ea4afa1f7d465d2bf3d643" => :yosemite
+    sha256 "2638bfa5fd373a67650d7476678757ea0575153b149342e288dece1782bd79cf" => :mavericks
+    sha256 "1e93d503ad004245845bea11e0d4a831860af9d0ae35d674f95b8609fcae40bd" => :mountain_lion
   end
 
   option "with-boost", "Compile using installed boost, not the version shipped with mongodb"
 
   depends_on "boost" => :optional
+  depends_on "go" => :build
   depends_on :macos => :snow_leopard
   depends_on "scons" => :build
   depends_on "openssl" => :optional
 
-  def install
+  go_resource "github.com/mongodb/mongo-tools" do
+    url "https://github.com/mongodb/mongo-tools.git",
+      :tag => "r3.0.2",
+      :revision => "a914adfcea7d76f07512415eec5cd8308e67318e"
+  end
 
-    # New Go tools have their own build script but the server scons "install" target is still
-    # responsible for installing them.
+  def install
     Language::Go.stage_deps resources, buildpath/"src"
 
     cd "src/github.com/mongodb/mongo-tools" do
