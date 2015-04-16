@@ -46,7 +46,7 @@ class Cmake < Formula
 
   def install
     if build.with? "docs"
-      ENV.prepend_create_path "PYTHONPATH", buildpath+"sphinx/lib64/python2.6/site-packages"
+      ENV.prepend_create_path "PYTHONPATH", buildpath+"sphinx/lib/python2.7/site-packages"
       resources.each do |r|
         r.stage do
           system "python", *Language::Python.setup_install_args(buildpath/"sphinx")
