@@ -203,11 +203,11 @@ class FormulaInstaller
       begin
         f = Formulary.factory(c.name)
         f.linked_keg.exist? && f.opt_prefix.exist?
-      rescue FormulaUnavailableError
-        raise unless c.name =~ HOMEBREW_TAP_FORMULA_REGEX
+      rescue TapFormulaUnavailableError
         # If the formula name is in full-qualified name. Let's silently
         # ignore it as we don't care about things used in taps that aren't
         # currently tapped.
+        next
       end
     end
 
@@ -442,7 +442,12 @@ class FormulaInstaller
     args << "--verbose" if verbose?
     args << "--debug" if debug?
     args << "--cc=#{ARGV.cc}" if ARGV.cc
-    args << "--env=#{ARGV.env}" if ARGV.env
+
+    if ARGV.env
+      args << "--env=#{ARGV.env}"
+    elsif formula.env.std? || formula.recursive_dependencies.any? { |d| d.name == "scons" }
+      args << "--env=std"
+    end
 
     if formula.head?
       args << "--HEAD"
@@ -464,7 +469,7 @@ class FormulaInstaller
   end
 
   def build
-    FileUtils.rm Dir["#{HOMEBREW_LOGS}/#{formula.name}/*"]
+    FileUtils.rm_rf(formula.logs)
 
     @start_time = Time.now
 
@@ -474,7 +479,7 @@ class FormulaInstaller
     args = %W[
       nice #{RUBY_PATH}
       -W0
-      -I #{HOMEBREW_LIBRARY_PATH}
+      -I #{HOMEBREW_LOAD_PATH}
       --
       #{HOMEBREW_LIBRARY_PATH}/build.rb
       #{formula.path}
@@ -483,6 +488,8 @@ class FormulaInstaller
     Utils.safe_fork do
       if Sandbox.available? && ARGV.sandbox?
         sandbox = Sandbox.new
+        formula.logs.mkpath
+        sandbox.record_log(formula.logs/"sandbox.build.log")
         sandbox.allow_write_temp_and_cache
         sandbox.allow_write_log(formula)
         sandbox.allow_write_cellar(formula)

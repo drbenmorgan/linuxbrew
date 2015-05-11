@@ -1,6 +1,7 @@
 require "extend/ENV"
 require "formula_assertions"
 require "sandbox"
+require "timeout"
 
 module Homebrew
 
@@ -28,7 +29,7 @@ module Homebrew
         args = %W[
           #{RUBY_PATH}
           -W0
-          -I #{HOMEBREW_LIBRARY_PATH}
+          -I #{HOMEBREW_LOAD_PATH}
           --
           #{HOMEBREW_LIBRARY_PATH}/test.rb
           #{f.path}
@@ -37,6 +38,8 @@ module Homebrew
         Utils.safe_fork do
           if Sandbox.available? && ARGV.sandbox?
             sandbox = Sandbox.new
+            f.logs.mkpath
+            sandbox.record_log(f.logs/"sandbox.test.log")
             sandbox.allow_write_temp_and_cache
             sandbox.allow_write_log(f)
             sandbox.exec(*args)

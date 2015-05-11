@@ -163,7 +163,8 @@ def quiet_system cmd, *args
 end
 
 def curl *args
-  curl = Pathname.new '/usr/bin/curl'
+  curl = which "curl" unless OS.mac?
+  curl ||= Pathname.new '/usr/bin/curl'
   raise "#{curl} is not executable" unless curl.exist? and curl.executable?
 
   flags = HOMEBREW_CURL_ARGS
@@ -312,9 +313,9 @@ module GitHub extend self
     def initialize(reset, error)
       super <<-EOS.undent
         GitHub #{error}
-        Try again in #{pretty_ratelimit_reset(reset)}, or create an API token:
-          https://github.com/settings/applications
-        and then set HOMEBREW_GITHUB_API_TOKEN.
+        Try again in #{pretty_ratelimit_reset(reset)}, or create an personal access token:
+          https://github.com/settings/tokens
+        and then set it as HOMEBREW_GITHUB_API_TOKEN.
         EOS
     end
 

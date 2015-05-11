@@ -410,6 +410,10 @@ class Formula
   # there after pouring a bottle.
   def bottle_prefix; prefix+'.bottle' end
 
+  def logs
+    HOMEBREW_LOGS+name
+  end
+
   # override this to provide a plist
   def plist; nil; end
   alias :startup_plist :plist
@@ -510,7 +514,7 @@ class Formula
       begin
         yield self
       ensure
-        cp Dir["config.log", "CMakeCache.txt"], HOMEBREW_LOGS+name
+        cp Dir["config.log", "CMakeCache.txt"], logs
       end
     end
   end
@@ -573,7 +577,7 @@ class Formula
   # Note: there isn't a std_autotools variant because autotools is a lot
   # less consistent and the standard parameters are more memorable.
   def std_cmake_args
-    %W[
+    args = %W[
       -DCMAKE_C_FLAGS_RELEASE=
       -DCMAKE_CXX_FLAGS_RELEASE=
       -DCMAKE_INSTALL_PREFIX=#{prefix}
@@ -582,6 +586,9 @@ class Formula
       -DCMAKE_VERBOSE_MAKEFILE=ON
       -Wno-dev
     ]
+    # Set RPATH for Linux to fix error while loading shared libraries
+    args << "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=1" if OS.linux?
+    args
   end
 
   # @deprecated
@@ -790,9 +797,8 @@ class Formula
 
     @exec_count ||= 0
     @exec_count += 1
-    logd = HOMEBREW_LOGS/name
-    logfn = "#{logd}/%02d.%s" % [@exec_count, File.basename(cmd).split(' ').first]
-    mkdir_p(logd)
+    logfn = "#{logs}/%02d.%s" % [@exec_count, File.basename(cmd).split(' ').first]
+    logs.mkpath
 
     File.open(logfn, "w") do |log|
       log.puts Time.now, "", cmd, args, ""

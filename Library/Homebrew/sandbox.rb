@@ -12,6 +12,10 @@ class Sandbox
     @profile = SandboxProfile.new
   end
 
+  def record_log(file)
+    @log = file
+  end
+
   def add_rule(rule)
     @profile.add_rule(rule)
   end
@@ -46,7 +50,13 @@ class Sandbox
   end
 
   def allow_write_log(formula)
-    allow_write_path HOMEBREW_LOGS/formula.name
+    allow_write_path formula.logs
+  end
+
+  def deny_write_homebrew_library
+    deny_write_path HOMEBREW_LIBRARY
+    deny_write_path HOMEBREW_REPOSITORY/".git"
+    deny_write HOMEBREW_BREW_FILE
   end
 
   def exec(*args)
@@ -54,6 +64,7 @@ class Sandbox
       seatbelt = Tempfile.new(["homebrew", ".sb"], HOMEBREW_TEMP)
       seatbelt.write(@profile.dump)
       seatbelt.close
+      @start = Time.now
       safe_system SANDBOX_EXEC, "-f", seatbelt.path, *args
     rescue
       if ARGV.verbose?
@@ -63,6 +74,18 @@ class Sandbox
       raise
     ensure
       seatbelt.unlink
+      unless @log.nil?
+        sleep 0.1 # wait for a bit to let syslog catch up the latest events.
+        syslog_args = %W[
+          -F '$((Time)(local))\ $(Sender)[$(PID)]:\ $Message'
+          -k Time ge #{@start.to_i.to_s}
+          -k Sender kernel
+          -o
+          -k Time ge #{@start.to_i.to_s}
+          -k Sender sandboxd
+        ]
+        quiet_system "syslog #{syslog_args * " "} | grep deny > #{@log}"
+      end
     end
   end
 

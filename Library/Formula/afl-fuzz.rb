@@ -2,15 +2,15 @@ require "formula"
 
 class AflFuzz < Formula
   homepage "http://lcamtuf.coredump.cx/afl/"
-  url "http://lcamtuf.coredump.cx/afl/releases/afl-1.65b.tgz"
-  sha256 "5dee78bdb069eeb704456ac017455d34d8a1596068266adebdb29b3d5b0ea817"
+  url "http://lcamtuf.coredump.cx/afl/releases/afl-1.75b.tgz"
+  sha256 "ca9b691cb92631881d5491ce54afe2a7e447a140d0497555cefb739be72dc188"
 
   head "http://lcamtuf.coredump.cx/afl/releases/afl-latest.tgz"
 
   bottle do
-    sha256 "f364972749e6b5966f90d5609d913c6384fb88b4857b429e191b8be8453fb626" => :yosemite
-    sha256 "d87d5f1482464807ab0cca6f2da6238e8a0f6af60fd6bf8afec65b757ee9b027" => :mavericks
-    sha256 "6a791a2bc52e37d28cea51ccdc9f6c0a6c78ba9b013a0edc54ed865b23acfb38" => :mountain_lion
+    sha256 "ad0ffdd261b79feea939dda941c081563f46290cb1f399873ee47911f01a4fff" => :yosemite
+    sha256 "603a20b32b25d47bd3bf7c872ee76b44a88739c5ff6f5dfe32debe6094c5107c" => :mavericks
+    sha256 "4b027255596c7c43fc1e4128883661672c0dbfcd99047c626de1a39115557e0f" => :mountain_lion
   end
 
   def install
