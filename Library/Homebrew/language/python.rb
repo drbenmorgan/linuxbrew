@@ -85,7 +85,6 @@ module Language
       %W[
         -c
         #{shim}
-        --no-user-cfg
         install
         --prefix=#{prefix}
         --single-version-externally-managed

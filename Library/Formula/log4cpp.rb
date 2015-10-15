@@ -5,6 +5,7 @@ class Log4cpp < Formula
   sha256 "35abf332630a6809c969276b1d60b90c81a95daf24c86cfd7866ffef72f9bed0"
 
   def install
+    ENV.cxx11 if build.cxx11?
     system "./configure", "--disable-debug", "--disable-dependency-tracking",
                           "--prefix=#{prefix}"
     system "make", "install"
