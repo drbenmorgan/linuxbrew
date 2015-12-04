@@ -4,6 +4,8 @@ class Log4cpp < Formula
   url "https://downloads.sourceforge.net/project/log4cpp/log4cpp-1.1.x%20%28new%29/log4cpp-1.1/log4cpp-1.1.1.tar.gz"
   sha256 "35abf332630a6809c969276b1d60b90c81a95daf24c86cfd7866ffef72f9bed0"
 
+  option :cxx11
+
   def install
     ENV.cxx11 if build.cxx11?
     system "./configure", "--disable-debug", "--disable-dependency-tracking",
