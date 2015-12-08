@@ -5,6 +5,8 @@ class Tbb < Formula
   sha256 "221f85fe64e11c9638e43b3c57d5750c26683905fc90827c0bcfefdb286e79c9"
   version "4.3-20150611"
 
+  patch :DATA
+
   bottle do
     cellar :any
     sha256 "95f3aba5609c56a089346546e807b7c62979f913cb04a2edbc4a155948e471fa" => :el_capitan
@@ -27,7 +29,8 @@ class Tbb < Formula
 
     if build.cxx11?
       ENV.cxx11
-      args << "cpp0x=1" << "stdlib=libc++"
+      args << "cpp0x=1"
+      args << "stdlib=libc++" if OS.mac?
     end
 
     system "make", *args
@@ -54,3 +57,32 @@ class Tbb < Formula
     system "./test"
   end
 end
+__END__
+diff --git a/build/linux.gcc.inc b/build/linux.gcc.inc
+index 4b7122b..37f4c4c 100644
+--- a/build/linux.gcc.inc
++++ b/build/linux.gcc.inc
+@@ -32,8 +32,8 @@ DYLIB_KEY = -shared
+ EXPORT_KEY = -Wl,--version-script,
+ LIBDL = -ldl
+ 
+-CPLUS = g++
+-CONLY = gcc
++CPLUS = $(CXX)
++CONLY = $(CC)
+ LIB_LINK_FLAGS = $(DYLIB_KEY) -Wl,-soname=$(BUILDING_LIBRARY)
+ LIBS += -lpthread -lrt
+ LINK_FLAGS = -Wl,-rpath-link=. -rdynamic
+diff --git a/build/linux.inc b/build/linux.inc
+index 631c520..bc701e1 100644
+--- a/build/linux.inc
++++ b/build/linux.inc
+@@ -57,7 +57,7 @@ ifndef arch
+ endif
+ 
+ ifndef runtime
+-        gcc_version:=$(shell gcc -dumpversion)
++        gcc_version:=$(shell $(CC) -dumpversion)
+         os_version:=$(shell uname -r)
+         os_kernel_version:=$(shell uname -r | sed -e 's/-.*$$//')
+         export os_glibc_version_full:=$(shell getconf GNU_LIBC_VERSION | grep glibc | sed -e 's/^glibc //')
