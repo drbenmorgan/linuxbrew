@@ -1,15 +1,16 @@
 class Root6 < Formula
   homepage "http://root.cern.ch"
-  version "6.04.10"
+  version "6.06.00"
   url "http://root.cern.ch/download/root_v#{version}.source.tar.gz"
   mirror "https://fossies.org/linux/misc/root_v#{version}.source.tar.gz"
-  sha256 "6684d9589d56e2dcfb7fa444a68ba5808708d9dc1a3f1d762308755df800777b"
+  sha256 "96e460883a3a0f350beda732364b8091b2bd98e1e953e0d86a51eeba19a0edcb"
   head "http://root.cern.ch/git/root.git"
 
   depends_on "cmake" => :build
   depends_on "gsl" => :recommended
   depends_on "openssl" => :optional
   depends_on "sqlite3" => :recommended
+  depends_on "tbb" => :optional
   depends_on "xrootd" => :optional
   depends_on :python => :recommended
   depends_on :x11 => :recommended if OS.linux?
@@ -30,12 +31,41 @@ class Root6 < Formula
       /bin.thisroot/, "libexec/thisroot"
 
     mkdir "cmake-build" do
-      system "cmake", "..", 
-        "-Dgminimal=ON",
+      system "cmake", "..",
+        # Disable everything that might be ON by default... 
+        # minimal/gminimal don't allow override...
+        "-Dalien=OFF",
+        "-Dasimage=OFF",
+        "-Dastiff=OFF",
+        "-Dbonjour=OFF",
+        "-Dcastor=OFF",
+        "-Dchirp=OFF",
+        "-Ddcache=OFF",
+        "-Dfitsio=OFF",
+        "-Dgfal=OFF",
+        "-Dglite=OFF",
+        "-Dgviz=OFF",
+        "-Dhdfs=OFF",
+        "-Dkrb5=OFF",
+        "-Dldap=OFF",
+        "-Dmonalisa=OFF",
+        "-Dmysql=OFF",
+        "-Dodbc=OFF",
+        "-Doracle=OFF",
+        "-Dpgsql=OFF",
+        "-Dpythia6=OFF",
+        "-Dpythia8=OFF",
+        "-Dqt=OFF",
+        "-Drfio=OFF",
+        "-Dsapdb=OFF",
+        "-Dsrp=OFF",
+        # Now the stuff we want
+        "-Dfail-on-missing=ON",
         "-Dgnuinstall=ON",
         "-Dexplicitlink=ON",
         "-Drpath=ON",
         "-Dsoversion=ON",
+        "-Dbuiltin_fftw3=ON",
         "-Dbuiltin_freetype=ON",
         "-Droofit=ON",
         "-Dgdml=ON",
@@ -45,6 +75,7 @@ class Root6 < Formula
         cmake_opt("sqlite", "sqlite3"),
         cmake_opt("xrootd"),
         cmake_opt("mathmore","gsl"),
+        cmake_opt("tbb"),
         *std_cmake_args
       system "make", "install"
     end
