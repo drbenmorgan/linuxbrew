@@ -1,8 +1,8 @@
 class Geant4 < Formula
   homepage "http://geant4.cern.ch"
-  url "http://geant4.cern.ch/support/source/geant4.10.01.tar.gz"
-  version "10.01.00"
-  sha256 "d37400e96423fedfbf8dbe1f49e2ef0367317c3893ad99f28eed06bf97e1feb7"
+  url "http://geant4.cern.ch/support/source/geant4.10.02.tar.gz"
+  version "10.02.00"
+  sha256 "633ca2df88b03ba818c7eb09ba21d0667a94e342f7d6d6ff3c695d83583b8aa3"
 
   patch :DATA
 
@@ -87,3 +87,16 @@ index 2a7a4cc..79a327e 100644
      set(G4_X11_CFLAGS )
      foreach(_p ${_raw_x11_includes})
        set(G4_X11_CFLAGS "-I${_p} ${G4_X11_CFLAGS}")
+diff --git a/cmake/Modules/FindCLHEP.cmake b/cmake/Modules/FindCLHEP.cmake
+index 8857f9c..2f27fc0 100644
+--- a/cmake/Modules/FindCLHEP.cmake
++++ b/cmake/Modules/FindCLHEP.cmake
+@@ -205,7 +205,7 @@ find_path(CLHEP_INCLUDE_DIR CLHEP/Units/defs.h
+ if(CLHEP_INCLUDE_DIR)
+     set(CLHEP_VERSION 0)
+     file(READ "${CLHEP_INCLUDE_DIR}/CLHEP/Units/defs.h" _CLHEP_DEFS_CONTENTS)
+-    string(REGEX REPLACE ".*#define PACKAGE_VERSION \"([0-9.]+).*" "\\1"
++    string(REGEX REPLACE ".*#define (PACKAGE|CLHEP_UNITS)_VERSION \"([0-9.]+).*" "\\2"
+         CLHEP_VERSION "${_CLHEP_DEFS_CONTENTS}")
+ 
+     if(NOT CLHEP_FIND_QUIETLY)
