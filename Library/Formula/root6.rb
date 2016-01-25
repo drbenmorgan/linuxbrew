@@ -10,8 +10,8 @@ class Root6 < Formula
   depends_on "gsl" => :recommended
   depends_on "openssl" => :optional
   depends_on "sqlite3" => :recommended
-  depends_on "tbb" => :optional
-  depends_on "xrootd" => :optional
+  depends_on "tbb" => [:optional, 'c++11']
+  depends_on "xrootd" => [:optional, 'cxx11']
   depends_on :python => :recommended
   depends_on :x11 => :recommended if OS.linux?
 
