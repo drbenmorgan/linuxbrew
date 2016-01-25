@@ -4,6 +4,7 @@ class Xrootd < Formula
   url "http://xrootd.org/download/v4.1.1/xrootd-4.1.1.tar.gz"
   sha256 "3e472ec8068adc76f10df8a1bb1c795bb37a0a9936d4a255cc62073eb86c70c4"
   head "https://github.com/xrootd/xrootd.git"
+  revision 1
 
   bottle do
     cellar :any
@@ -17,9 +18,12 @@ class Xrootd < Formula
   depends_on "cmake" => :build
   depends_on "openssl"
 
+  option :cxx11
+
   def install
+    ENV.cxx11 if build.with? "c++11"
     mkdir "build" do
-      system "cmake", "..", *std_cmake_args
+      system "cmake", "..", "-DCMAKE_INSTALL_LIBDIR=#{lib}", *std_cmake_args
       system "make", "install"
     end
     share.install prefix/"man" unless OS.linux?
