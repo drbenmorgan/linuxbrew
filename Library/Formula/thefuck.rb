@@ -1,16 +1,16 @@
 class Thefuck < Formula
   desc "Programatically correct mistyped console commands"
   homepage "https://github.com/nvbn/thefuck"
-  url "https://pypi.python.org/packages/source/t/thefuck/thefuck-3.1.tar.gz"
-  sha256 "a19d560689c0c5195aadb49e52326ed317cce7cd16e3ba7c7e367dfd6d287a4a"
+  url "https://pypi.python.org/packages/source/t/thefuck/thefuck-3.3.tar.gz"
+  sha256 "f2e720d3147b259de2bb763f0854fbd2d12da70669bb3958f0dffffd34f95e81"
 
   head "https://github.com/nvbn/thefuck.git"
 
   bottle do
     cellar :any_skip_relocation
-    sha256 "dd7d53564e2fa4f1c91c58c27e501bd04abc579497f7802197e927f45c8fa06e" => :el_capitan
-    sha256 "3a6c0ed9b0295a2354fcb0ebd387ae59e6708f71f00eed7df6b94f9ac66db5a0" => :yosemite
-    sha256 "aabc8a9646f3edd58d9d60eedca7b5af693245c95feb7e7ee7963265e82edb69" => :mavericks
+    sha256 "9c21b012d0cca0b469fef8d45f487c5d30643095fe56beae8cdb031a5ad323f8" => :el_capitan
+    sha256 "0af3c42bc8cbbdb9810e013f611f4c2b1a2877d07deef3425631c8c69b79d672" => :yosemite
+    sha256 "4d5cea822835b513032699396bd39b174824c709ce353532e78302c731826c02" => :mavericks
   end
 
   depends_on :python if MacOS.version <= :snow_leopard
@@ -76,5 +76,6 @@ class Thefuck < Formula
     assert_match /.+TF_ALIAS.+thefuck.+/, shell_output("#{bin}/thefuck --alias").chomp
     assert_match /git branch/, shell_output("#{bin}/thefuck git branchh").chomp
     assert_match /echo ok/, shell_output("#{bin}/thefuck echho ok").chomp
+    assert_match /^Seems like .+fuck.+ alias isn't configured.+/, shell_output("#{bin}/fuck").chomp
   end
 end

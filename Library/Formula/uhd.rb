@@ -4,11 +4,12 @@ class Uhd < Formula
   url "https://github.com/EttusResearch/uhd/archive/release_003_009_001.tar.gz"
   sha256 "e2059c34bea2aaca31eb8d3501ce7b535b559775d3050ed5c30946c34146a92e"
   head "https://github.com/EttusResearch/uhd.git"
+  revision 2
 
   bottle do
-    sha256 "e013a49457a34e404dc6a286b32eeca286f7f28eb68e3c052f5913472099a77d" => :el_capitan
-    sha256 "00c4833d41b74f0f9515147bce77c9959dda9934760ef473acc5a08519e7530c" => :yosemite
-    sha256 "9ae282ffd9b883a695d9cb5e595781e5bc5543ef4e3a6f1a75e323a0fcb838e9" => :mavericks
+    sha256 "a9219e143155d880befb4d46684a18838ad1671b5088372222ad67ff5c5c44cf" => :el_capitan
+    sha256 "ed9abd856281bcd07827a460f9f04b8cffa9dca31ed4eb360721bb833e15b7ec" => :yosemite
+    sha256 "7cc29536d0d8c679a9db0251cc0e08223de79e37bec368996abff5657fcea9b5" => :mavericks
   end
 
   option :universal

@@ -162,13 +162,6 @@ _brew_bottle ()
 
 _brew_cleanup ()
 {
-    local cur="${COMP_WORDS[COMP_CWORD]}"
-    case "$cur" in
-    --*)
-        __brewcomp "--force"
-        return
-        ;;
-    esac
     __brew_complete_installed
 }
 
@@ -326,6 +319,7 @@ _brew_linkapps ()
         return
         ;;
     esac
+    __brew_complete_installed
 }
 
 _brew_list ()
@@ -554,6 +548,7 @@ _brew_upgrade ()
         __brewcomp "
             --all
             --build-from-source --build-bottle --force-bottle
+            --cleanup
             --debug
             --verbose
             "
@@ -623,7 +618,7 @@ _brew ()
     install|instal|reinstall)   _brew_install ;;
     irb)                        _brew_irb ;;
     link|ln)                    _brew_link ;;
-    linkapps)                   _brew_linkapps ;;
+    linkapps|unlinkapps)        _brew_linkapps ;;
     list|ls)                    _brew_list ;;
     log)                        _brew_log ;;
     man)                        _brew_man ;;

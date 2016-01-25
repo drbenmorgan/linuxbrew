@@ -1,16 +1,11 @@
 class Nexus < Formula
   desc "Repository manager for binary software components"
   homepage "http://www.sonatype.org/"
-  url "https://sonatype-download.global.ssl.fastly.net/nexus/oss/nexus-2.11.4-01-bundle.tar.gz"
-  version "2.11.4-01"
-  sha256 "2901d00c7a5c287d0ab51980b0ea8ad6a3db936e6a9bc7aea573ec4e2b516719"
+  url "https://sonatype-download.global.ssl.fastly.net/nexus/oss/nexus-2.12.0-01-bundle.tar.gz"
+  version "2.12.0-01"
+  sha256 "bf3c02ef9cdea0e854e0feba85d74f79215db04b692aebbaea37e4caf83c7fcc"
 
-  bottle do
-    cellar :any_skip_relocation
-    sha256 "7b681196601ce846b1ecc47c1bbb9bb7dbd8374bc58e08c82ab9b2d9f75e8f34" => :el_capitan
-    sha256 "d4d4491805a55babac9c576952c31d2d2c398a44f9553ea28126c424fce67872" => :yosemite
-    sha256 "bf9690d1cd468fd6e0cb1ef8e471bfe91e5d9ea4eb369f3f028665b19e2d0fe9" => :mavericks
-  end
+  bottle :unneeded
 
   def install
     rm_f Dir["bin/*.bat"]

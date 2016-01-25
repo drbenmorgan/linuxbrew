@@ -1,18 +1,18 @@
 class Mysql < Formula
   desc "Open source relational database management system"
   homepage "https://dev.mysql.com/doc/refman/5.7/en/"
-  url "https://cdn.mysql.com/Downloads/MySQL-5.7/mysql-5.7.9.tar.gz"
-  sha256 "315342f5bee1179548cecad2d776cd7758092fd2854024e60a3a5007feba34e0"
+  url "https://cdn.mysql.com/Downloads/MySQL-5.7/mysql-5.7.10.tar.gz"
+  sha256 "1ea1644884d086a23eafd8ccb04d517fbd43da3a6a06036f23c5c3a111e25c74"
 
   bottle do
-    revision 1
-    sha256 "95c6d7fbc023e66c8c05c25a6c60da2a86f785a6aa294ef47dbb52e3f0ede47e" => :el_capitan
-    sha256 "25d22186b29c508e6ad178da999c03c3e04d1b436640e0cf4f56d14345f8f42a" => :yosemite
-    sha256 "9552b55a18e73cdf9a818e6496ea71875ca95d8c92fd018a4bf7807ceedb11cf" => :mavericks
+    revision 2
+    sha256 "a0f1de24e7e2e9531d0565085cd1b7007a6919765cad07d7fc17f1c7fd7837dd" => :el_capitan
+    sha256 "d128052dd7625362e2f74e8da7469aab072d84dfa999d8ba5086f4afb73ec771" => :yosemite
+    sha256 "d26ee1f6fac724b2fb780e5e3161eb7fd2d9126144d801a410bae6ebcecba439" => :mavericks
   end
 
   option :universal
-  option "with-tests", "Build with unit tests"
+  option "with-test", "Build with unit tests"
   option "with-embedded", "Build the embedded server"
   option "with-archive-storage-engine", "Compile with the ARCHIVE storage engine enabled"
   option "with-blackhole-storage-engine", "Compile with the BLACKHOLE storage engine enabled"
@@ -23,13 +23,13 @@ class Mysql < Formula
   deprecated_option "enable-local-infile" => "with-local-infile"
   deprecated_option "enable-memcached" => "with-memcached"
   deprecated_option "enable-debug" => "with-debug"
+  deprecated_option "with-tests" => "with-test"
 
   depends_on "cmake" => :build
   depends_on "pidof" unless MacOS.version >= :mountain_lion || !OS.mac?
   depends_on "openssl"
-  depends_on "boost"
   # Fix error: Cannot find system editline libraries.
-  depends_on "libedit" unless OS.mac?
+  depends_on "homebrew/dupes/libedit" unless OS.mac?
 
   conflicts_with "mysql-cluster", "mariadb", "percona-server",
     :because => "mysql, mariadb, and percona install the same binaries."
@@ -39,6 +39,11 @@ class Mysql < Formula
   fails_with :llvm do
     build 2326
     cause "https://github.com/Homebrew/homebrew/issues/issue/144"
+  end
+
+  resource "boost" do
+    url "https://downloads.sourceforge.net/project/boost/boost/1.59.0/boost_1_59_0.tar.bz2"
+    sha256 "727a932322d94287b62abb1bd2d41723eec4356a7728909e38adb65ca25241ca"
   end
 
   def datadir
@@ -77,8 +82,14 @@ class Mysql < Formula
       -DWITH_EDITLINE=system
     ]
 
+    # MySQL >5.7.x mandates Boost as a requirement to build & has a strict
+    # version check in place to ensure it only builds against expected release.
+    # This is problematic when Boost releases don't align with MySQL releases.
+    (buildpath/"boost_1_59_0").install resource("boost")
+    args << "-DWITH_BOOST=#{buildpath}/boost_1_59_0"
+
     # To enable unit testing at build, we need to download the unit testing suite
-    if build.with? "tests"
+    if build.with? "test"
       args << "-DENABLE_DOWNLOADS=ON"
     else
       args << "-DWITH_UNIT_TESTS=OFF"

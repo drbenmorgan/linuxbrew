@@ -1,15 +1,15 @@
 class TomcatNative < Formula
   desc "Lets Tomcat use some native resources for performance"
   homepage "https://tomcat.apache.org/native-doc/"
-  url "https://www.apache.org/dyn/closer.cgi?path=tomcat/tomcat-connectors/native/1.2.2/source/tomcat-native-1.2.2-src.tar.gz"
-  mirror "https://archive.apache.org/dist/tomcat/tomcat-connectors/native/1.2.2/source/tomcat-native-1.2.2-src.tar.gz"
-  sha256 "9bd4deb1a816efda8208bfb4f55ee1689571e1d05a5c1e84faf2ad1021a9cae6"
+  url "https://www.apache.org/dyn/closer.cgi?path=tomcat/tomcat-connectors/native/1.2.4/source/tomcat-native-1.2.4-src.tar.gz"
+  mirror "https://archive.apache.org/dist/tomcat/tomcat-connectors/native/1.2.4/source/tomcat-native-1.2.4-src.tar.gz"
+  sha256 "29d53d4646229a839ccb71b7b3caa25c256aab1965c33cc9d140247213b9b171"
 
   bottle do
     cellar :any
-    sha256 "e9e472d50ff1c5edfd2c02bd57db7d8412f607250ae759614c9689289e922ffb" => :el_capitan
-    sha256 "75d6f31a1618f29d8d98efb69afacc3cdf310ee683f21ff4ba18ee2dee666e57" => :yosemite
-    sha256 "5ea0be1d91ab2c69bc51ead44cd460fdd2dbd07f5175e6038d9d711a8c2b8d89" => :mavericks
+    sha256 "8ce2e7b4ad961da4867cce166945df037c8d76e826d43a93c3d8cfb0f8d68f89" => :el_capitan
+    sha256 "2352fe2f08e07aad55be01da7be1652817e3edc81868bca9356a7fde000b16af" => :yosemite
+    sha256 "3446580b48a5591bed7366a81003a1e0f8fccbfdb4687a023acc953f5efffb92" => :mavericks
   end
 
   option "with-apr", "Include APR support via Homebrew"

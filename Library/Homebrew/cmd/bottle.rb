@@ -145,6 +145,16 @@ module Homebrew
       return ofail "Formula not installed or up-to-date: #{f.full_name}"
     end
 
+    unless f.tap
+      return ofail "Formula not from core or any taps: #{f.full_name}"
+    end
+
+    if f.bottle_disabled?
+      ofail "Formula has disabled bottle: #{f.full_name}"
+      puts f.bottle_disable_reason
+      return
+    end
+
     unless built_as_bottle? f
       return ofail "Formula not installed with '--build-bottle': #{f.full_name}"
     end
@@ -168,6 +178,9 @@ module Homebrew
     filename = Bottle::Filename.create(f, bottle_tag, bottle_revision)
     bottle_path = Pathname.pwd/filename
 
+    tar_filename = filename.to_s.sub(/.gz$/, "")
+    tar_path = Pathname.pwd/tar_filename
+
     prefix = HOMEBREW_PREFIX.to_s
     cellar = HOMEBREW_CELLAR.to_s
 
@@ -178,6 +191,8 @@ module Homebrew
     skip_relocation = false
 
     keg.lock do
+      original_tab = nil
+
       begin
         keg.relocate_install_names prefix, Keg::PREFIX_PLACEHOLDER,
           cellar, Keg::CELLAR_PLACEHOLDER
@@ -186,10 +201,24 @@ module Homebrew
 
         keg.delete_pyc_files!
 
+        tab = Tab.for_keg(keg)
+        original_tab = tab.dup
+        tab.poured_from_bottle = false
+        tab.HEAD = nil
+        tab.time = nil
+        tab.write
+
+        keg.find {|k| File.utime(File.atime(k), tab.source_modified_time, k) }
+
         cd cellar do
+          safe_system "tar", "cf", tar_path, "#{f.name}/#{f.pkg_version}"
+          File.utime(File.atime(tar_path), tab.source_modified_time, tar_path)
+          relocatable_tar_path = "#{f}-bottle.tar"
+          mv tar_path, relocatable_tar_path
           # Use gzip, faster to compress than bzip2, faster to uncompress than bzip2
           # or an uncompressed tarball (and more bandwidth friendly).
-          safe_system "tar", "czf", bottle_path, "#{f.name}/#{f.pkg_version}"
+          safe_system "gzip", "-f", relocatable_tar_path
+          mv "#{relocatable_tar_path}.gz", bottle_path
         end
 
         if bottle_path.size > 1*1024*1024
@@ -216,6 +245,7 @@ module Homebrew
         raise
       ensure
         ignore_interrupts do
+          original_tab.write
           keg.relocate_install_names Keg::PREFIX_PLACEHOLDER, prefix,
             Keg::CELLAR_PLACEHOLDER, cellar
         end
@@ -288,6 +318,12 @@ module Homebrew
       ohai formula_name
       f = Formulary.factory(formula_name)
 
+      if f.bottle_disabled?
+        ofail "Formula #{f.full_name} has disabled bottle"
+        puts f.bottle_disable_reason
+        next
+      end
+
       bottle = if keep_old
         f.bottle_specification.dup
       else
@@ -327,15 +363,15 @@ module Homebrew
             else
               string = s.sub!(
                 /(
-                  \ {2}(                                                              # two spaces at the beginning
-                    url\ ['"][\S\ ]+['"]                                              # url with a string
+                  \ {2}(                                                         # two spaces at the beginning
+                    (url|head)\ ['"][\S\ ]+['"]                                  # url or head with a string
                     (
-                      ,[\S\ ]*$                                                       # url may have options
-                      (\n^\ {3}[\S\ ]+$)*                                             # options can be in multiple lines
+                      ,[\S\ ]*$                                                  # url may have options
+                      (\n^\ {3}[\S\ ]+$)*                                        # options can be in multiple lines
                     )?|
-                    (homepage|desc|sha1|sha256|head|version|mirror)\ ['"][\S\ ]+['"]| # specs with a string
-                    revision\ \d+                                                     # revision with a number
-                  )\n+                                                                # multiple empty lines
+                    (homepage|desc|sha1|sha256|version|mirror)\ ['"][\S\ ]+['"]| # specs with a string
+                    revision\ \d+                                                # revision with a number
+                  )\n+                                                           # multiple empty lines
                  )+
                /mx, '\0' + output + "\n")
             end

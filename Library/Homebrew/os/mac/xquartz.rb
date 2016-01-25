@@ -22,13 +22,15 @@ module OS
         "2.7.53" => "2.7.5_rc4",
         "2.7.54" => "2.7.5",
         "2.7.61" => "2.7.6",
-        "2.7.73" => "2.7.7"
+        "2.7.73" => "2.7.7",
+        "2.7.86" => "2.7.8"
       }.freeze
 
       # This returns the version number of XQuartz, not of the upstream X.org.
       # The X11.app distributed by Apple is also XQuartz, and therefore covered
       # by this method.
       def version
+        @version ||= latest_version if OS.linux?
         @version ||= detect_version
       end
 
@@ -49,7 +51,7 @@ module OS
         when "10.5"
           "2.6.3"
         else
-          "2.7.7"
+          "2.7.8"
         end
       end
 
@@ -93,6 +95,7 @@ module OS
       # remain public. New code should use MacOS::X11.bin, MacOS::X11.lib and
       # MacOS::X11.include instead, as that accounts for Xcode-only systems.
       def prefix
+        @prefix ||= Pathname.new("/usr") if OS.linux?
         @prefix ||= if Pathname.new("/opt/X11/lib/libpng.dylib").exist?
           Pathname.new("/opt/X11")
         elsif Pathname.new("/usr/X11/lib/libpng.dylib").exist?

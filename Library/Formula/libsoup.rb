@@ -1,13 +1,14 @@
 class Libsoup < Formula
   desc "HTTP client/server library for GNOME"
   homepage "https://live.gnome.org/LibSoup"
-  url "https://download.gnome.org/sources/libsoup/2.52/libsoup-2.52.0.tar.xz"
-  sha256 "6c6c366622a1a9d938e0cea9b557fa536f088784251d31381ccd1b115a466785"
+  url "https://download.gnome.org/sources/libsoup/2.52/libsoup-2.52.2.tar.xz"
+  sha256 "db55628b5c7d952945bb71b236469057c8dfb8dea0c271513579c6273c2093dc"
+  revision 1
 
   bottle do
-    sha256 "e0d3dbf2aa4195d18431df3a0ab3ec76d39cf8d16c92f197bbb44fd7dcd27f70" => :el_capitan
-    sha256 "271aa21a2f6e318949eb0cb2c46e16580400a941d92a11bd10077f1210598aec" => :yosemite
-    sha256 "0e65073606ae428ecd8c5992b458102e14c288e8ebd420e49929f1332aeeb37a" => :mavericks
+    sha256 "de28079d444082ea4f6f2aca4388152aa8d303926917baa5f656bdd7d222ef72" => :el_capitan
+    sha256 "20307b7b63cc31b13243d5c69352a650ddb9c814f7ed3da4e25eaf5658488d95" => :yosemite
+    sha256 "5906c25c1cc3da2f65759625853be406fda083a8551129b79141196dbb63c81c" => :mavericks
   end
 
   depends_on "pkg-config" => :build

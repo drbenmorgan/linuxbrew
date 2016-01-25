@@ -1,20 +1,20 @@
 require "language/go"
 
 class Vault < Formula
-  desc "secures, stores, and tightly controls access to secrets"
+  desc "Secures, stores, and tightly controls access to secrets"
   homepage "https://vaultproject.io/"
   url "https://github.com/hashicorp/vault.git",
-      :tag => "v0.3.0",
-      :revision => "347f48c55bae0fa7a36d8eae6028de9a6eeefc01"
+      :tag => "v0.4.0",
+      :revision => "b3da917b2305b23693cf2594f9d29e52acc514cf"
+  revision 1
 
   head "https://github.com/hashicorp/vault.git"
 
   bottle do
     cellar :any_skip_relocation
-    revision 1
-    sha256 "a52e6daba780f523191e96a7ab3084b48190354db95d2d2dc7039a16c7fbcb82" => :el_capitan
-    sha256 "28ba8b9ef7a457741250a680885964ebb1daa5a6e779862df5d0809508f99f34" => :yosemite
-    sha256 "f7088ed870024f5b8c3d1abef77ffe5d4533e68d22c47433b9ea00ba3d67378e" => :mavericks
+    sha256 "41aacbabd07b3084f62d4beb27e524185a07c349ead5f532f8c095d2cc37cbe9" => :el_capitan
+    sha256 "60c643c46e4bdedf3cb278e4929edfa58471b192a828aed4ca902f79179109ad" => :yosemite
+    sha256 "9e2a67a91df6f2734354bd58a0e1061f0a5cd146d3b976c99e52af17a3a62a3d" => :mavericks
   end
 
   depends_on "go" => :build

@@ -8,7 +8,6 @@ require "caveats"
 require "cleaner"
 require "formula_cellar_checks"
 require "install_renamed"
-require "cmd/tap"
 require "cmd/postinstall"
 require "hooks/bottles"
 require "debrew"
@@ -29,9 +28,9 @@ class FormulaInstaller
   end
 
   attr_reader :formula
-  attr_accessor :options
+  attr_accessor :options, :build_bottle
   mode_attr_accessor :show_summary_heading, :show_header
-  mode_attr_accessor :build_from_source, :build_bottle, :force_bottle
+  mode_attr_accessor :build_from_source, :force_bottle
   mode_attr_accessor :ignore_deps, :only_deps, :interactive, :git
   mode_attr_accessor :verbose, :debug, :quieter
 
@@ -69,6 +68,24 @@ class FormulaInstaller
     raise BuildFlagsError.new(build_flags) unless build_flags.empty?
   end
 
+  def build_bottle?
+    !!@build_bottle && !formula.bottle_disabled?
+  end
+
+  # Installing bottles on Linux requires glibc and patchelf.
+  def bottle_requirements_satisfied?(f)
+    return true unless OS.linux?
+    return true if f.name == "linux-headers"
+    return true if f.name == "patchelf" && Formula["glibc"].installed?
+    begin
+      return false unless Formula["glibc"].installed? && Formula["patchelf"].installed?
+    rescue FormulaUnavailableError
+      # Fix for brew tests, which uses NullLoader.
+      true
+    end
+    true
+  end
+
   def pour_bottle?(install_bottle_options = { :warn=>false })
     return true if Homebrew::Hooks::Bottles.formula_has_bottle?(formula)
 
@@ -79,13 +96,7 @@ class FormulaInstaller
     return false if build_from_source? || build_bottle? || interactive?
     return false if ARGV.cc
     return false unless options.empty?
-
-    if OS.linux?
-      return true if formula.name == "linux-headers"
-      return true if formula.name == "patchelf" && Formula["glibc"].installed?
-      return false unless Formula["glibc"].installed? && Formula["patchelf"].installed?
-    end
-
+    return false if formula.bottle_disabled?
     return true  if formula.local_bottle_path
     return false unless bottle && formula.pour_bottle?
 
@@ -96,6 +107,7 @@ class FormulaInstaller
       return false
     end
 
+    return false unless bottle_requirements_satisfied?(formula)
     true
   end
 
@@ -103,6 +115,7 @@ class FormulaInstaller
     return pour_bottle? if dep == formula
     return false if build_from_source?
     return false unless dep.bottle && dep.pour_bottle?
+    return false unless bottle_requirements_satisfied?(dep)
     return false unless build.used_options.empty?
     return false unless dep.bottle.compatible_cellar?
     true
@@ -118,10 +131,11 @@ class FormulaInstaller
     begin
       formula.recursive_dependencies.map(&:to_formula)
     rescue TapFormulaUnavailableError => e
-      if Homebrew.install_tap(e.user, e.repo)
-        retry
-      else
+      if e.tap.installed?
         raise
+      else
+        e.tap.install
+        retry
       end
     end
   rescue FormulaUnavailableError => e
@@ -167,7 +181,7 @@ class FormulaInstaller
 
     check_conflicts
 
-    if !pour_bottle? && !MacOS.has_apple_developer_tools?
+    if !pour_bottle? && !formula.bottle_unneeded? && !MacOS.has_apple_developer_tools?
       raise BuildToolsError.new([formula])
     end
 
@@ -259,7 +273,10 @@ class FormulaInstaller
   # abnormally with a BuildToolsError if one or more don't.
   # Only invoked when the user has no developer tools.
   def check_dependencies_bottled(deps)
-    unbottled = deps.reject { |dep, _| dep.to_formula.pour_bottle? }
+    unbottled = deps.reject do |dep, _|
+      dep_f = dep.to_formula
+      dep_f.pour_bottle? || dep_f.bottle_unneeded?
+    end
 
     raise BuildToolsError.new(unbottled) unless unbottled.empty?
   end
@@ -285,7 +302,7 @@ class FormulaInstaller
   def install_requirement_default_formula?(req, dependent, build)
     return false unless req.default_formula?
     return true unless req.satisfied?
-    return false if req.tags.include?(:run)
+    return false if req.run?
     install_bottle_for?(dependent, build) || build_bottle?
   end
 
@@ -314,6 +331,9 @@ class FormulaInstaller
         end
       end
     end
+
+    # Merge the repeated dependencies, which may have different tags.
+    deps = Dependency.merge_repeats(deps)
 
     [unsatisfied_reqs, deps]
   end
@@ -344,6 +364,7 @@ class FormulaInstaller
     args  = dependent.build.used_options
     args |= dependent == formula ? options : inherited_options
     args |= Tab.for_formula(dependent).used_options
+    args &= dependent.options
     BuildOptions.new(args, dependent.options)
   end
 
@@ -500,6 +521,7 @@ class FormulaInstaller
     args << "--verbose" if verbose?
     args << "--debug" if debug?
     args << "--cc=#{ARGV.cc}" if ARGV.cc
+    args << "--default-fortran-flags" if ARGV.include? "--default-fortran-flags"
 
     if ARGV.env
       args << "--env=#{ARGV.env}"
@@ -569,7 +591,9 @@ class FormulaInstaller
       end
     end
 
-    raise "Empty installation" if Dir["#{formula.prefix}/*"].empty?
+    if !formula.prefix.directory? || Keg.new(formula.prefix).empty_installation?
+      raise "Empty installation"
+    end
 
   rescue Exception
     ignore_interrupts do
@@ -738,6 +762,8 @@ class FormulaInstaller
 
     tab.tap = formula.tap
     tab.poured_from_bottle = true
+    tab.time = Time.now.to_i
+    tab.head = Homebrew.git_head
     tab.write
   end
 

@@ -2,6 +2,8 @@ require "hardware"
 require "os/mac/version"
 require "os/mac/xcode"
 require "os/mac/xquartz"
+require "os/mac/pathname"
+require "os/mac/sdk"
 
 module OS
   module Mac
@@ -12,7 +14,25 @@ module OS
     # This can be compared to numerics, strings, or symbols
     # using the standard Ruby Comparable methods.
     def version
-      @version ||= Version.new(MACOS_VERSION)
+      return @version ||= Version.new("0") unless OS.mac?
+      @version ||= Version.new(full_version.to_s[/10\.\d+/])
+    end
+
+    # This can be compared to numerics, strings, or symbols
+    # using the standard Ruby Comparable methods.
+    def full_version
+      return @full_version ||= Version.new("0") unless OS.mac?
+      @full_version ||= Version.new(`/usr/bin/sw_vers -productVersion`.chomp)
+    end
+
+    def prerelease?
+      # TODO: bump version when new OS is released
+      version >= "10.12"
+    end
+
+    def outdated_release?
+      # TODO: bump version when new OS is released
+      version < "10.9"
     end
 
     def cat
@@ -68,18 +88,26 @@ module OS
       @active_developer_dir ||= Utils.popen_read("/usr/bin/xcode-select", "-print-path").strip
     end
 
-    def sdk_path(v = version)
-      return nil if OS.linux?
-      (@sdk_path ||= {}).fetch(v.to_s) do |key|
-        opts = []
-        # First query Xcode itself
-        opts << Utils.popen_read(locate("xcodebuild"), "-version", "-sdk", "macosx#{v}", "Path").chomp
-        # Xcode.prefix is pretty smart, so lets look inside to find the sdk
-        opts << "#{Xcode.prefix}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX#{v}.sdk"
-        # Xcode < 4.3 style
-        opts << "/Developer/SDKs/MacOSX#{v}.sdk"
-        @sdk_path[key] = opts.map { |a| Pathname.new(a) }.detect(&:directory?)
+    # Returns the requested SDK, if installed.
+    # If the requested SDK is not installed returns either:
+    # a) The newest SDK (if any SDKs are available), or
+    # b) nil
+    def sdk(v = version)
+      return nil unless OS.mac?
+      @locator ||= SDKLocator.new
+      begin
+        @locator.sdk_for v
+      rescue SDKLocator::NoSDKError
+        sdk = @locator.latest_sdk
+        # don't return an SDK that's older than the OS version
+        sdk unless sdk.nil? || sdk.version < version
       end
+    end
+
+    # Returns the path to an SDK or nil, following the rules set by #sdk.
+    def sdk_path(v = version)
+      s = sdk(v)
+      s.path unless s.nil?
     end
 
     def default_cc
@@ -108,7 +136,7 @@ module OS
     def gcc_40_build_version
       @gcc_40_build_version ||=
         if (path = locate("gcc-4.0"))
-        `#{path} --version`[/build (\d{4,})/, 1].to_i
+          `#{path} --version`[/build (\d{4,})/, 1].to_i
         end
     end
     alias_method :gcc_4_0_build_version, :gcc_40_build_version
@@ -117,7 +145,7 @@ module OS
       @gcc_42_build_version ||=
         begin
           gcc = MacOS.locate("gcc-4.2") || HOMEBREW_PREFIX.join("opt/apple-gcc42/bin/gcc-4.2")
-          if gcc.exist? && gcc.realpath.basename.to_s !~ /^llvm/
+          if gcc.exist? && !gcc.realpath.basename.to_s.start_with?("llvm")
             `#{gcc} --version`[/build (\d{4,})/, 1].to_i
           end
         end
@@ -126,22 +154,22 @@ module OS
 
     def llvm_build_version
       @llvm_build_version ||=
-        if (path = locate("llvm-gcc")) && path.realpath.basename.to_s !~ /^clang/
-        `#{path} --version`[/LLVM build (\d{4,})/, 1].to_i
+        if (path = locate("llvm-gcc")) && !path.realpath.basename.to_s.start_with?("clang")
+          `#{path} --version`[/LLVM build (\d{4,})/, 1].to_i
         end
     end
 
     def clang_version
       @clang_version ||=
         if (path = locate("clang"))
-        `#{path} --version`[/(?:clang|LLVM) version (\d\.\d)/, 1]
+          `#{path} --version`[/(?:clang|LLVM) version (\d\.\d)/, 1]
         end
     end
 
     def clang_build_version
       @clang_build_version ||=
         if (path = locate("clang"))
-        `#{path} --version`[/clang-(\d{2,})/, 1].to_i
+          `#{path} --version`[/clang-(\d{2,})/, 1].to_i
         end
     end
 
@@ -150,7 +178,7 @@ module OS
         path = HOMEBREW_PREFIX.join("opt", "gcc", "bin", cc)
         path = locate(cc) unless path.exist?
         path = locate(cc.delete("-.")) if OS.linux? && !path
-        version = `#{path} --version`[/gcc(?:-\d(?:\.\d)? \(.+\))? (\d\.\d\.\d)/, 1] if path
+        version = `#{path} --version`[/gcc(?:-\d(?:\.\d)?)? \(.+\) (\d\.\d\.\d)/, 1] if path
         @non_apple_gcc_version[cc] = version
       end
     end
@@ -243,6 +271,9 @@ module OS
       "6.4"   => { :clang => "6.1", :clang_build => 602 },
       "7.0"   => { :clang => "7.0", :clang_build => 700 },
       "7.0.1" => { :clang => "7.0", :clang_build => 700 },
+      "7.1"   => { :clang => "7.0", :clang_build => 700 },
+      "7.1.1" => { :clang => "7.0", :clang_build => 700 },
+      "7.2"   => { :clang => "7.0", :clang_build => 700 },
     }
 
     def compilers_standard?
