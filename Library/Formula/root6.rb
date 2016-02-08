@@ -65,6 +65,8 @@ class Root6 < Formula
         "-Dexplicitlink=ON",
         "-Drpath=ON",
         "-Dsoversion=ON",
+        "-Dbuiltin_asimage=ON",
+        "-Dasimage=ON",
         "-Dbuiltin_fftw3=ON",
         "-Dbuiltin_freetype=ON",
         "-Droofit=ON",
