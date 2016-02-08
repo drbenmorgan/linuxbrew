@@ -27,7 +27,7 @@ class Clhep < Formula
     cd dir do
       args = std_cmake_args
       args << "-DCMAKE_BUILD_WITH_INSTALL_RPATH=ON"
-      args << "-DCLHEP_BUILD_CXXSTD=c++11" if build.cxx11?
+      args << "-DCLHEP_BUILD_CXXSTD=-std=c++11" if build.cxx11?
        if build.stable?
         args << "#{buildpath}/CLHEP"
       else
