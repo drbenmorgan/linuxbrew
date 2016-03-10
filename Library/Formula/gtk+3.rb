@@ -1,13 +1,13 @@
 class Gtkx3 < Formula
   desc "Toolkit for creating graphical user interfaces"
   homepage "http://gtk.org/"
-  url "https://download.gnome.org/sources/gtk+/3.18/gtk+-3.18.6.tar.xz"
-  sha256 "78cabf0fd5a662f8723f62d5ac633072c76c557c1d700454c9c3deaa37e441ef"
+  url "https://download.gnome.org/sources/gtk+/3.18/gtk+-3.18.8.tar.xz"
+  sha256 "1c53ef1bb55364698f7183ecd185b547f92f4a3a7abfafd531400232e2e052f8"
 
   bottle do
-    sha256 "b0fc11a032f5ae2a73b13bc5c39403b413ee344ea7754e7c3154ec04f8fcf238" => :el_capitan
-    sha256 "ddde49d0c5cbd287718c53873ecd3619c71968778a19a53479f3648f6ba0f7d6" => :yosemite
-    sha256 "6c5a0906e8c35ee3be5e2c51c3343a7dcc8248755839b9cb4047588a123010fa" => :mavericks
+    sha256 "b250a8e000076700f0f356781fe493fa1a1c8af968c012b4e118b3bb29cb0479" => :el_capitan
+    sha256 "370157f2de6cb875b6b4e8f455310ac46e11b1176f17f19939b31b4eff2534d7" => :yosemite
+    sha256 "33bc59bff5b2114d1d8fe33218884ec02993c6b72383d380ec22c083705d91af" => :mavericks
   end
 
   option :universal
@@ -23,6 +23,7 @@ class Gtkx3 < Formula
   depends_on "pango"
   depends_on "glib"
   depends_on "hicolor-icon-theme"
+  depends_on "cairo" => "with-x11" unless OS.mac?
 
   # Replace a keyword not supported by Snow Leopard's Objective-C compiler.
   # https://bugzilla.gnome.org/show_bug.cgi?id=756770
@@ -43,9 +44,13 @@ class Gtkx3 < Formula
       --disable-glibtest
       --enable-introspection=yes
       --disable-schemas-compile
-      --enable-quartz-backend
-      --disable-x11-backend
     ]
+
+    if OS.mac?
+      args << "--enable-quartz-backend" << "--disable-x11-backend"
+    else
+      args << "--disable-quartz-backend" << "--enable-x11-backend"
+    end
 
     args << "--enable-quartz-relocation" if build.with?("quartz-relocation")
 

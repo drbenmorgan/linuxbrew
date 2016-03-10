@@ -1,15 +1,14 @@
 class Node < Formula
   desc "Platform built on the V8 JavaScript runtime to build network applications"
   homepage "https://nodejs.org/"
-  url "https://nodejs.org/dist/v5.4.1/node-v5.4.1.tar.gz"
-  sha256 "78455ef2e3dea06b7d13d393c36711009048a91e5de5892523ec4a9be5a55e0c"
+  url "https://nodejs.org/dist/v5.7.1/node-v5.7.1.tar.xz"
+  sha256 "029ed8aeb997c68d1a901cd837af02d24b6b5e20a4ff93bed090fd289f91a9a1"
   head "https://github.com/nodejs/node.git"
-  revision 1
 
   bottle do
-    sha256 "c8a2c1dab74278a46e07c4aa46982f75579ab9429896f593aeb7bb2413eff8e4" => :el_capitan
-    sha256 "aff3070af712c60a700c73d40579a1f5da53db84dffac12a1bbe38d162fb0f01" => :yosemite
-    sha256 "ac528051da258fcb1a07e630e7aa98d21ffba388758031b77b34b25f1031d928" => :mavericks
+    sha256 "9ea30f15633d87b6abaea3d9e724e1af14795fdb37e693844a53eb0bfac653e5" => :el_capitan
+    sha256 "5b415bc3f2c5c7638e56fb5840bbcbaa64e49f695e1e0a1e4d27914227d275f0" => :yosemite
+    sha256 "4b12421992a0113afaa41cf287b3783d107c60069c5590a4db73419848d51861" => :mavericks
   end
 
   option "with-debug", "Build with debugger hooks"
@@ -37,8 +36,8 @@ class Node < Formula
   # We will accept *important* npm patch releases when necessary.
   # https://github.com/Homebrew/homebrew/pull/46098#issuecomment-157802319
   resource "npm" do
-    url "https://registry.npmjs.org/npm/-/npm-3.5.3.tgz"
-    sha256 "a6f62a53d8f8ce856c2b2b7908c466fe8a6cc44f7af915b56b70d8039f9414f6"
+    url "https://registry.npmjs.org/npm/-/npm-3.6.0.tgz"
+    sha256 "e686676c9d6db00f43f415998a8e0f47f415549f850f4b86ffdc7d7677db70e0"
   end
 
   resource "icu4c" do
@@ -74,6 +73,8 @@ class Node < Formula
       ENV.prepend_path "PATH", bin
       # set log level temporarily for npm's `make install`
       ENV["NPM_CONFIG_LOGLEVEL"] = "verbose"
+      # unset prefix temporarily for npm's `make install`
+      ENV.delete "NPM_CONFIG_PREFIX"
 
       cd buildpath/"npm_install" do
         system "./configure", "--prefix=#{libexec}/npm"
@@ -117,8 +118,8 @@ class Node < Formula
     ["man1", "man3", "man5", "man7"].each do |man|
       # Dirs must exist first: https://github.com/Homebrew/homebrew/issues/35969
       mkdir_p HOMEBREW_PREFIX/"share/man/#{man}"
-      rm_f Dir[HOMEBREW_PREFIX/"share/man/#{man}/{npm.,npm-,npmrc.}*"]
-      ln_sf Dir[libexec/"npm/lib/node_modules/npm/man/#{man}/npm*"], HOMEBREW_PREFIX/"share/man/#{man}"
+      rm_f Dir[HOMEBREW_PREFIX/"share/man/#{man}/{npm.,npm-,npmrc.,package.json.}*"]
+      ln_sf Dir[libexec/"npm/lib/node_modules/npm/man/#{man}/{npm,package.json}*"], HOMEBREW_PREFIX/"share/man/#{man}"
     end
 
     npm_root = node_modules/"npm"

@@ -15,9 +15,9 @@ end
 class Macvim < Formula
   desc "GUI for vim, made for OS X"
   homepage "https://github.com/macvim-dev/macvim"
-  url "https://github.com/macvim-dev/macvim/archive/snapshot-91.tar.gz"
-  version "7.4-91"
-  sha256 "ddb550ea1945160b70e1bb8fb1ac0ec8a8c9a959affecb6d6ffd2ded6124cea1"
+  url "https://github.com/macvim-dev/macvim/archive/snapshot-98.tar.gz"
+  version "7.4-98"
+  sha256 "9fc0cf5f7b71e0eaddfe568588bfb98e3bd392fd3e86a767d95dfef7fff979f0"
 
   head "https://github.com/macvim-dev/macvim.git"
 

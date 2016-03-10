@@ -1,6 +1,7 @@
 require "keg"
 require "language/python"
 require "formula"
+require "tempfile"
 require "version"
 
 module Homebrew
@@ -175,6 +176,7 @@ module Homebrew
           "libmacfuse_i64.2.dylib", # OSXFuse MacFuse compatibility layer
           "libosxfuse_i32.2.dylib", # OSXFuse
           "libosxfuse_i64.2.dylib", # OSXFuse
+          "libosxfuse.2.dylib", # OSXFuse
           "libTrAPI.dylib", # TrAPI / Endpoint Security VPN
           "libntfs-3g.*.dylib", # NTFS-3G
           "libntfs.*.dylib", # NTFS-3G
@@ -238,6 +240,7 @@ module Homebrew
           "libfuse_ino64.la", # MacFuse
           "libosxfuse_i32.la", # OSXFuse
           "libosxfuse_i64.la", # OSXFuse
+          "libosxfuse.la", # OSXFuse
           "libntfs-3g.la", # NTFS-3G
           "libntfs.la", # NTFS-3G
           "libublio.la", # NTFS-3G
@@ -787,6 +790,7 @@ module Homebrew
       end
 
       def check_which_pkg_config
+        return unless OS.mac? || Formula["pkg-config"].installed?
         binary = which "pkg-config"
         return if binary.nil?
 
@@ -895,10 +899,11 @@ module Homebrew
       end
 
       def check_DYLD_vars
-        found = ENV.keys.grep(/^DYLD_/)
+        dyld = OS.mac? ? "DYLD" : "LD"
+        found = ENV.keys.grep(/^#{dyld}_/)
         return if found.empty?
         s = inject_file_list found.map { |e| "#{e}: #{ENV.fetch(e)}" }, <<-EOS.undent
-          Setting DYLD_* vars can break dynamic linking.
+          Setting #{dyld}_* vars can break dynamic linking.
           Set variables:
         EOS
         if found.include? "DYLD_INSERT_LIBRARIES"
@@ -1010,7 +1015,7 @@ module Homebrew
       def check_git_newline_settings
         return unless Utils.git_available?
 
-        autocrlf = `git config --get core.autocrlf`.chomp
+        autocrlf = HOMEBREW_REPOSITORY.cd { `git config --get core.autocrlf`.chomp }
 
         if autocrlf == "true" then <<-EOS.undent
         Suspicious Git newline settings found.
@@ -1054,6 +1059,7 @@ module Homebrew
       end
 
       def check_for_autoconf
+        return unless MacOS::Xcode.installed?
         return unless MacOS::Xcode.provides_autotools?
 
         autoconf = which("autoconf")
@@ -1118,6 +1124,23 @@ module Homebrew
       def check_tmpdir
         tmpdir = ENV["TMPDIR"]
         "TMPDIR #{tmpdir.inspect} doesn't exist." unless tmpdir.nil? || File.directory?(tmpdir)
+      end
+
+      def check_tmpdir_executable
+        Tempfile.open("homebrew_check_tmpdir_executable", HOMEBREW_TEMP) do |f|
+          f.write "#!/bin/sh\n"
+          f.chmod 0700
+          f.close
+          unless system f.path
+            <<-EOS.undent
+              The directory #{HOMEBREW_TEMP} does not permit executing
+              programs. It is likely mounted "noexec". Please set HOMEBREW_TEMP
+              in your #{shell_profile} to a different directory.
+                export HOMEBREW_TEMP=~/tmp
+                echo 'export HOMEBREW_TEMP=~/tmp' >> #{shell_profile}
+            EOS
+          end
+        end
       end
 
       def check_missing_deps
@@ -1207,20 +1230,29 @@ module Homebrew
       end
 
       def check_for_non_prefixed_coreutils
-        gnubin = "#{Formulary.factory("coreutils").prefix}/libexec/gnubin"
-        if paths.include? gnubin then <<-EOS.undent
+        coreutils = Formula["coreutils"]
+        return unless coreutils.any_version_installed?
+
+        gnubin = %W[#{coreutils.opt_libexec}/gnubin #{coreutils.libexec}/gnubin]
+        return if (paths & gnubin).empty?
+
+        <<-EOS.undent
           Putting non-prefixed coreutils in your path can cause gmp builds to fail.
-          EOS
-        end
+        EOS
       end
 
       def check_for_non_prefixed_findutils
-        gnubin = "#{Formulary.factory("findutils").prefix}/libexec/gnubin"
+        return unless OS.mac?
+        findutils = Formula["findutils"]
+        return unless findutils.any_version_installed?
+
+        gnubin = %W[#{findutils.opt_libexec}/gnubin #{findutils.libexec}/gnubin]
         default_names = Tab.for_name("findutils").with? "default-names"
-        if paths.include?(gnubin) || default_names then <<-EOS.undent
+        return if !default_names && (paths & gnubin).empty?
+
+        <<-EOS.undent
           Putting non-prefixed findutils in your path can cause python builds to fail.
-          EOS
-        end
+        EOS
       end
 
       def check_for_pydistutils_cfg_in_home
@@ -1235,28 +1267,27 @@ module Homebrew
 
       def check_for_outdated_homebrew
         return unless Utils.git_available?
-        HOMEBREW_REPOSITORY.cd do
-          if File.directory? ".git"
+
+        timestamp = if File.directory?("#{HOMEBREW_REPOSITORY}/.git")
+          HOMEBREW_REPOSITORY.cd { `git log -1 --format="%ct" HEAD`.to_i }
+        else
+          HOMEBREW_LIBRARY.mtime.to_i
+        end
+        return if Time.now.to_i - timestamp <= 60 * 60 * 24 # 24 hours
+
+        if File.directory?("#{HOMEBREW_REPOSITORY}/.git")
+          HOMEBREW_REPOSITORY.cd do
             local = `git rev-parse -q --verify refs/remotes/origin/master`.chomp
             remote = /^([a-f0-9]{40})/.match(`git ls-remote origin refs/heads/master 2>/dev/null`)
-            if remote.nil? || local == remote[0]
-              return
-            end
+            return if remote.nil? || local == remote[0]
           end
+        end
 
-          timestamp = if File.directory? ".git"
-            `git log -1 --format="%ct" HEAD`.to_i
-          else
-            HOMEBREW_LIBRARY.mtime.to_i
-          end
-
-          if Time.now.to_i - timestamp > 60 * 60 * 24 then <<-EOS.undent
+        <<-EOS.undent
           Your Homebrew is outdated.
           You haven't updated for at least 24 hours. This is a long time in brewland!
           To update Homebrew, run `brew update`.
-          EOS
-          end
-        end
+        EOS
       end
 
       def check_for_unlinked_but_not_keg_only

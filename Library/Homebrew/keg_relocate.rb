@@ -29,6 +29,7 @@ class Keg
   end
 
   def relocate_install_names(old_prefix, new_prefix, old_cellar, new_cellar)
+    return if name == "glibc"
     mach_o_files.each do |file|
       file.ensure_writable do
         change_rpath(file, new_prefix)
@@ -76,34 +77,25 @@ class Keg
 
   def change_rpath(file, new_prefix)
     return unless OS.linux?
-    patchelf = Formula["patchelf"]
+    # Patching patchelf using itself fails with "Text file busy" or SIGBUS.
+    return if name == "patchelf"
+    begin
+      patchelf = Formula["patchelf"]
+    rescue FormulaUnavailableError
+      # Fix for brew tests, which uses NullLoader.
+      return
+    end
     return unless patchelf.installed?
-    glibc = Formula["glibc"]
     cmd = "#{patchelf.bin}/patchelf --set-rpath #{new_prefix}/lib"
     if file.mach_o_executable?
-      interpreter = if new_prefix == PREFIX_PLACEHOLDER || !glibc.installed? then
-        "/lib64/ld-linux-x86-64.so.2"
-      else
-        "#{glibc.opt_lib}/ld-linux-x86-64.so.2"
-      end
+      interpreter = new_prefix == PREFIX_PLACEHOLDER ?
+        "/lib64/ld-linux-x86-64.so.2" :
+        HOMEBREW_PREFIX/"lib/ld.so"
       cmd << " --set-interpreter #{interpreter}"
-
-      # Patch patchelf using patchelf, even when its interpreter is invalid.
-      cmd = "#{interpreter} #{cmd}" if name == "patchelf"
     end
     cmd << " #{file}"
     puts "Setting RPATH of #{file}" if ARGV.debug?
     safe_system cmd
-  end
-
-  def change_dylib_id(id, file)
-    puts "Changing dylib ID of #{file}\n  from #{file.dylib_id}\n    to #{id}" if ARGV.debug?
-    install_name_tool("-id", id, file)
-  end
-
-  def change_install_name(old, new, file)
-    puts "Changing install name in #{file}\n  from #{old}\n    to #{new}" if ARGV.debug?
-    install_name_tool("-change", old, new, file)
   end
 
   # Detects the C++ dynamic libraries in place, scanning the dynamic links
@@ -134,16 +126,6 @@ class Keg
         yield file if hardlinks.add? file.stat.ino
       end
     end
-  end
-
-  def install_name_tool(*args)
-    @require_install_name_tool = true
-    tool = MacOS.install_name_tool
-    system(tool, *args) || raise(ErrorDuringExecution.new(tool, args))
-  end
-
-  def require_install_name_tool?
-    !!@require_install_name_tool
   end
 
   # If file is a dylib or bundle itself, look for the dylib named by

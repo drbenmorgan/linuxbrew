@@ -30,14 +30,14 @@ class Wget < Formula
   option "with-debug", "Build with debug support"
 
   depends_on "pkg-config" => :build
-  depends_on "pod2man" => :build if MacOS.version <= :snow_leopard
+  depends_on "pod2man" => :build if OS.mac? && MacOS.version <= :snow_leopard
   depends_on "openssl" => :recommended
   depends_on "libressl" => :optional
   depends_on "libidn" if build.with? "iri"
   depends_on "pcre" => :optional
   depends_on "libmetalink" => :optional
   depends_on "gpgme" => :optional
-  depends_on "libuuid" unless OS.mac?
+  depends_on "util-linux" if OS.linux? # for libuuid
 
   def install
     args = %W[

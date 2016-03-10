@@ -362,9 +362,48 @@ class FormulaTests < Homebrew::TestCase
     assert_predicate f2, :installed?
     assert_predicate f3, :installed?
 
-    assert_equal f3.installed_kegs[0..1], f3.eligible_kegs_for_cleanup
+    assert_equal [Keg.new(f1.prefix), Keg.new(f2.prefix)],
+      f3.eligible_kegs_for_cleanup.sort_by(&:version)
   ensure
     [f1, f2, f3].each(&:clear_cache)
     f3.rack.rmtree
+  end
+
+  def test_pour_bottle
+    f_false = formula("foo") do
+      url "foo-1.0"
+      def pour_bottle?
+        false
+      end
+    end
+    refute f_false.pour_bottle?
+
+    f_true = formula("foo") do
+      url "foo-1.0"
+      def pour_bottle?
+        true
+      end
+    end
+    assert f_true.pour_bottle?
+  end
+
+  def test_pour_bottle_dsl
+    f_false = formula("foo") do
+      url "foo-1.0"
+      pour_bottle? do
+        reason "false reason"
+        satisfy { var == etc }
+      end
+    end
+    refute f_false.pour_bottle?
+
+    f_true = formula("foo") do
+      url "foo-1.0"
+      pour_bottle? do
+        reason "true reason"
+        satisfy { var == var }
+      end
+    end
+    assert f_true.pour_bottle?
   end
 end

@@ -3,12 +3,12 @@ class Rust < Formula
   homepage "https://www.rust-lang.org/"
 
   stable do
-    url "https://static.rust-lang.org/dist/rustc-1.5.0-src.tar.gz"
-    sha256 "641037af7b7b6cad0b231cc20671f8a314fbf2f40fc0901d0b877c39fc8da5a0"
+    url "https://static.rust-lang.org/dist/rustc-1.7.0-src.tar.gz"
+    sha256 "6df96059d87b718676d9cd879672e4e22418b6093396b4ccb5b5b66df37bf13a"
 
     resource "cargo" do
       # git required because of submodules
-      url "https://github.com/rust-lang/cargo.git", :tag => "0.7.0", :revision => "1af03beaffe9be40ae81ca39431c1f1651ef6b02"
+      url "https://github.com/rust-lang/cargo.git", :tag => "0.9.0", :revision => "8fc3fd8df3857f3e77454c992458cd7baeeb622b"
     end
 
     # name includes date to satisfy cache
@@ -31,9 +31,9 @@ class Rust < Formula
   end
 
   bottle do
-    sha256 "5aeabcbbf97d221a9391d971215de2db2704f6a1f7f10d91d33b89ef4aff6d20" => :el_capitan
-    sha256 "d6a6d90a90590bfb211608dc99dbaa5ceebe6ed9be9d52c0fd7d60069141e7e8" => :yosemite
-    sha256 "d4239efd38e9312e67782cbefc223bde3b37ee5709107a437575d11cc0f93df0" => :mavericks
+    sha256 "d494a5570ef0203c6072d38e97d8cc799c13da65bc97e448e2b8da4137bff032" => :el_capitan
+    sha256 "508af8e550717eb07676979675e69cff842563685caba68c1f00523463b036e1" => :yosemite
+    sha256 "56199b13a9822d6a617b998b2a0c5b8d68cac5520ca76fff88d41e44bf2cba6e" => :mavericks
   end
 
   option "with-llvm", "Build with brewed LLVM. By default, Rust's LLVM will be used."
@@ -54,6 +54,12 @@ class Rust < Formula
   end
 
   def install
+    # Because we copy the source tree to a temporary build directory,
+    # the absolute paths written to the `gitdir` files of the
+    # submodules are no longer accurate, and running `git submodule
+    # update` during the configure step fails.
+    ENV["CFG_DISABLE_MANAGE_SUBMODULES"] = "1" if build.head?
+
     args = ["--prefix=#{prefix}"]
     args << "--disable-rpath" if build.head?
     args << "--enable-clang" if ENV.compiler == :clang

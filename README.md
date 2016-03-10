@@ -2,7 +2,11 @@
 
 [Linuxbrew](http://linuxbrew.sh) is a fork of [Homebrew](http://brew.sh), the Mac OS package manager, for Linux.
 
+It can be installed in your home directory and does not require root access. The same package manager can be used on both your Linux server and your Mac laptop. Installing a modern version of *glibc* and *gcc* in your home directory on an old distribution of Linux takes five minutes.
+
 Features, usage and installation instructions are [summarised on the homepage](http://linuxbrew.sh).
+
+To receive updates of major changes to Linuxbrew subscribe to the [Linuxbrew Updates](https://github.com/Linuxbrew/linuxbrew/issues/864) issue on GitHub.
 
 Install Linuxbrew (tl;dr)
 -------------------------
@@ -28,7 +32,6 @@ Dependencies
 
 * **Ruby** 1.8.6 or newer
 + **GCC** 4.2 or newer
-* **Git** 1.7.12.4 or newer
 + **Linux** 2.6.16 or newer
 + **64-bit x86** or **32-bit ARM** platform
 
@@ -37,18 +40,25 @@ Paste at a Terminal prompt:
 ### Debian or Ubuntu
 
 ```sh
-sudo apt-get install build-essential curl git m4 python-setuptools ruby texinfo libbz2-dev libcurl4-openssl-dev libexpat-dev libncurses-dev zlib1g-dev
+sudo apt-get install build-essential curl git python-setuptools ruby
 ```
 
 ### Fedora, CentOS or Red Hat
 
 ```sh
-sudo yum groupinstall 'Development Tools' && sudo yum install curl git irb m4 python-setuptools ruby texinfo bzip2-devel curl-devel expat-devel ncurses-devel zlib-devel
+sudo yum groupinstall 'Development Tools' && sudo yum install curl git irb python-setuptools ruby
 ```
 
 ### 32-bit x86 platforms
 
 Linuxbrew does not currently support 32-bit x86 platforms. It would be possible for Linuxbrew to work on 32-bit x86 platforms with some effort. Pull requests would be welcome if someone were to volunteer to maintain the 32-bit x86 support.
+
+Bottles
+-------
+
+Bottles are Linuxbrew's precompiled binary packages. Linuxbrew bottles work on any Linux system. They do however require `glibc` 2.19 or better. On systems with an older version of `glibc`, Linuxbrew will install `glibc` the first time that you install a bottled formula. If you prefer to use the `glibc` provided by your system and build all formulas from source, add to your `.bashrc` or `.zshrc`:
+
+`export HOMEBREW_BUILD_FROM_SOURCE=1`
 
 Installation
 ------------
@@ -117,11 +127,29 @@ Former maintainers with significant contributions include [Jack Nagel](https://g
 Code is under the [BSD 2 Clause (NetBSD) license](https://github.com/Homebrew/homebrew/tree/master/LICENSE.txt).
 Documentation is under the [Creative Commons Attribution license](https://creativecommons.org/licenses/by/4.0/).
 
+## Donations
+Homebrew is a non-profit project run entirely by unpaid volunteers. We need your funds to pay for software, hardware and hosting around continuous integration and future improvements to the project. Every donation will be spent on making Homebrew better for our users.
+
+Homebrew, the upstream project of Linuxbrew, is a member of the [Software Freedom Conservancy](http://sfconservancy.org) which provides Homebrew with an ability to receive tax-deductible, Homebrew earmarked donations (and [many other services](http://sfconservancy.org/members/services/)). Software Freedom Conservancy, Inc. is a 501(c)(3) organization incorporated in New York, and donations made to it are fully tax-deductible to the extent permitted by law.
+
+- [Donate with PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=V6ZE57MJRYC8L)
+- Donate by USA $ check from a USA bank:
+  - Make check payable to "Software Freedom Conservancy, Inc." and place "Directed donation: Homebrew" in the memo field.  Checks should then be mailed to:
+    - Software Freedom Conservancy, Inc.  
+      137 Montague ST  STE 380  
+      BROOKLYN, NY 11201             USA  
+- Donate by wire transfer: contact accounting@sfconservancy.org for wire transfer details.
+- Donate with Flattr or PayPal Giving Fund: coming soon.
+
 ## Sponsors
-Our CI infrastructure was paid for by [our Kickstarter supporters](https://github.com/Homebrew/homebrew/blob/master/SUPPORTERS.md).
+Our CI infrastructure was paid for by [our Kickstarter supporters](https://github.com/Homebrew/homebrew/blob/master/share/doc/homebrew/Kickstarter-Supporters.md).
 
 Our CI infrastructure is hosted by [The Positive Internet Company](http://www.positive-internet.com).
 
 Our bottles (binary packages) are hosted by Bintray.
 
 [![Downloads by Bintray](https://bintray.com/docs/images/downloads_by_bintray_96.png)](https://bintray.com/homebrew)
+
+Homebrew is a member of the [Software Freedom Conservancy](https://sfconservancy.org)
+
+[![Software Freedom Conservancy](https://sfconservancy.org/img/conservancy_64x64.png)](https://sfconservancy.org)

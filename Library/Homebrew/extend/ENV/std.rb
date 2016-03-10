@@ -57,19 +57,18 @@ module Stdenv
     append "LDFLAGS", "-Wl,-headerpad_max_install_names" if OS.mac?
 
     if OS.linux? && !["glibc", "glibc25"].include?(formula && formula.name)
-      # Set the dynamic linker
-      glibc = Formula["glibc"] rescue nil
-      if glibc && glibc.installed?
-        ldso = glibc.opt_lib/"ld-linux-x86-64.so.2"
-        if ldso.readable?
-          append "LDFLAGS", "-Wl,--dynamic-linker=#{ldso}"
-        end
-      else
-        # Set the dynamic library search path
-        self["LD_RUN_PATH"] = "#{HOMEBREW_PREFIX}/lib"
+      if formula
+        # Work around a bug in glibc 2.19 fixed in 2.20:
+        # segfault when LD_LIBRARY_PATH is set to non-existent directory.
+        # See https://github.com/Linuxbrew/linuxbrew/issues/841
+        FileUtils.mkdir_p formula.lib
+        # Add this formula's library directory to the shared library search path.
+        prepend "LD_LIBRARY_PATH", formula.lib, File::PATH_SEPARATOR
       end
-      # Set the dynamic library search path
-      append "LDFLAGS", "-Wl,-rpath,#{HOMEBREW_PREFIX}/lib"
+
+      # Set the dynamic linker and library search path.
+      append "LDFLAGS", "-Wl,--dynamic-linker=#{HOMEBREW_PREFIX}/lib/ld.so -Wl,-rpath,#{HOMEBREW_PREFIX}/lib"
+      prepend_path "LD_RUN_PATH", HOMEBREW_PREFIX/"lib"
     end
 
     if inherit?
@@ -294,6 +293,7 @@ module Stdenv
   end
 
   def universal_binary
+    return unless OS.mac?
     check_for_compiler_universal_support
 
     append_to_cflags Hardware::CPU.universal_archs.as_arch_flags

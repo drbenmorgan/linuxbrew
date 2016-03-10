@@ -23,10 +23,10 @@ class Mutt < Formula
   end
 
   head do
-    url "http://dev.mutt.org/hg/mutt#default", :using => :hg
+    url "https://dev.mutt.org/hg/mutt#default", :using => :hg
 
     resource "html" do
-      url "http://dev.mutt.org/doc/manual.html", :using => :nounzip
+      url "https://dev.mutt.org/doc/manual.html", :using => :nounzip
     end
   end
 
@@ -70,7 +70,11 @@ class Mutt < Formula
   end
 
   def install
-    user_admin = Etc.getgrnam("admin").mem.include?(ENV["USER"])
+    begin
+        user_admin = Etc.getgrnam("admin").mem.include?(ENV["USER"])
+    rescue
+        user_admin = false
+    end
 
     args = %W[
       --disable-dependency-tracking

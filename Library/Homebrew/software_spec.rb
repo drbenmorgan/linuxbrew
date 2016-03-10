@@ -165,6 +165,7 @@ class SoftwareSpec
   end
 
   def patch(strip = :p1, src = nil, &block)
+    dependency_collector.add("gpatch" => :build) unless OS.mac?
     patches << Patch.create(strip, src, &block)
   end
 
@@ -316,6 +317,8 @@ class BottleSpecification
 
   # Does the Bottle this BottleSpecification belongs to need to be relocated?
   def skip_relocation?
+    # Relocation is always required on Linux to locate glibc.
+    return false if OS.linux?
     cellar == :any_skip_relocation
   end
 
@@ -347,5 +350,19 @@ class BottleSpecification
       checksums[checksum.hash_type] << { checksum => osx }
     end
     checksums
+  end
+end
+
+class PourBottleCheck
+  def initialize(formula)
+    @formula = formula
+  end
+
+  def reason(reason)
+    @formula.pour_bottle_check_unsatisfied_reason = reason
+  end
+
+  def satisfy(&block)
+    @formula.send(:define_method, :pour_bottle?, &block)
   end
 end

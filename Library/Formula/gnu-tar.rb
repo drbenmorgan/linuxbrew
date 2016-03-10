@@ -5,21 +5,21 @@ class GnuTar < Formula
   mirror "https://ftp.gnu.org/gnu/tar/tar-1.28.tar.gz"
   sha256 "6a6b65bac00a127a508533c604d5bf1a3d40f82707d56f20cefd38a05e8237de"
 
-  option "with-default-names", "Do not prepend 'g' to the binary"
-
   bottle do
-    revision 3
-    sha256 "e454d4acb5d791a70b9f00658c1f2397f7a52e28657ea55a67b4f1d469222d98" => :el_capitan
-    sha256 "eacc46c8c80c5223cf77ff88ff16dc698b6e30927f7f3599b3af4222050d5a0c" => :yosemite
-    sha256 "b21d9afff94eba7d94b7e3fb886ab781e6bd3e3acc1615092788143b08384f49" => :mavericks
+    revision 4
+    sha256 "006f9aba7b70361c01666a0775027457265646bdd4d05a4c6fc1b0d9268af8a8" => :el_capitan
+    sha256 "7a32439d8e25984e4737ab74e1ee15a03f0cfc1455f9940f98beafe8609d97e8" => :yosemite
+    sha256 "b51eee5840990c2fc46ea887d9efd9c06fd92946bd39b8e4c124c4da40873be3" => :mavericks
   end
+
+  option "with-default-names", "Do not prepend 'g' to the binary"
 
   # Fix for xattrs bug causing build failures on OS X:
   # https://lists.gnu.org/archive/html/bug-tar/2014-08/msg00001.html
   patch do
     url "https://gist.githubusercontent.com/mistydemeo/10fbae8b8441359ba86d/raw/e5c183b72036821856f9e82b46fba6185e10e8b9/gnutar-configure-xattrs.patch"
     sha256 "f2e56bb8afd1c641a7e5b81e35fdbf36b6fb66434b1e35caa8b55196b30c3ad9"
-  end
+  end if OS.mac?
 
   def install
     # Work around unremovable, nested dirs bug that affects lots of
@@ -39,7 +39,10 @@ class GnuTar < Formula
     system "make", "install"
 
     # Symlink the executable into libexec/gnubin as "tar"
-    (libexec/"gnubin").install_symlink bin/"gtar" => "tar" if build.without? "default-names"
+    if build.without? "default-names"
+      (libexec/"gnubin").install_symlink bin/"gtar" =>"tar"
+      (libexec/"gnuman/man1").install_symlink man1/"gtar.1" => "tar.1"
+    end
   end
 
   def caveats
@@ -50,6 +53,12 @@ class GnuTar < Formula
       to your PATH from your bashrc like:
 
           PATH="#{opt_libexec}/gnubin:$PATH"
+
+      Additionally, you can access their man pages with normal names if you add
+      the "gnuman" directory to your MANPATH from your bashrc as well:
+
+          MANPATH="#{opt_libexec}/gnuman:$MANPATH"
+
       EOS
     end
   end

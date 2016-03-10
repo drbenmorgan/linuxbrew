@@ -1,7 +1,7 @@
 class Wxmac < Formula
   desc "wxWidgets, a cross-platform C++ GUI toolkit (for OS X)"
   homepage "https://www.wxwidgets.org"
-  url "https://downloads.sourceforge.net/project/wxwindows/3.0.2/wxWidgets-3.0.2.tar.bz2"
+  url "https://github.com/wxWidgets/wxWidgets/releases/download/v3.0.2/wxWidgets-3.0.2.tar.bz2"
   sha256 "346879dc554f3ab8d6da2704f651ecb504a22e9d31c17ef5449b129ed711585d"
   revision 2
 
@@ -19,6 +19,7 @@ class Wxmac < Formula
   depends_on "jpeg"
   depends_on "libpng"
   depends_on "libtiff"
+  depends_on "gtk+" unless OS.mac?
 
   # Various fixes related to Yosemite. Revisit in next stable release.
   # Please keep an eye on http://trac.wxwidgets.org/ticket/16329 as well
@@ -34,7 +35,6 @@ class Wxmac < Formula
       "--enable-std_string",
       "--enable-display",
       "--with-opengl",
-      "--with-osx_cocoa",
       "--with-libjpeg",
       "--with-libtiff",
       # Otherwise, even in superenv, the internal libtiff can pick
@@ -56,10 +56,14 @@ class Wxmac < Formula
       "--enable-dataviewctrl",
       "--with-expat",
       "--disable-precomp-headers",
-      "--with-macosx-version-min=#{MacOS.version}",
       # This is the default option, but be explicit
       "--disable-monolithic",
     ]
+
+    if OS.mac?
+      args << "--with-osx_cocoa"
+      args << "--with-macosx-version-min=#{MacOS.version}"
+    end
 
     if build.universal?
       ENV.universal_binary

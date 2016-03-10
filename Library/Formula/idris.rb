@@ -5,14 +5,14 @@ class Idris < Formula
 
   desc "Pure functional programming language with dependent types"
   homepage "http://www.idris-lang.org"
-  url "https://github.com/idris-lang/Idris-dev/archive/v0.9.20.2.tar.gz"
-  sha256 "3b89b24d07c6cd647c83b45fdede3f12fe3d07fbdefdd0b9023020beae3ad74e"
+  url "https://github.com/idris-lang/Idris-dev/archive/v0.10.2.tar.gz"
+  sha256 "3697808f06303f1d0a01708071ad2a580bf345bc0fc49e1cb3ee1cc139e99a9f"
   head "https://github.com/idris-lang/Idris-dev.git"
 
   bottle do
-    sha256 "ac4f5907e49ccf6289f64abe999e76f5d3ec4172e36445d8a7333cd6f55d4f37" => :el_capitan
-    sha256 "97ebe63827aa4b3ae9d6c23ba4fc2369f0c7a415542d8acc69b3a28d1cc7e956" => :yosemite
-    sha256 "dc924f92f5de15482cc2305b79a68a677be2fb7eade752bbc2898893f9033153" => :mavericks
+    sha256 "86a381352b9859d6c65172970753ad87e0ba7446b68c929f364d2488c8022119" => :el_capitan
+    sha256 "6324ae196d2684ebb7e0b53c1f7e6f9b31827ee1969f72aa481de1b177a39832" => :yosemite
+    sha256 "269885b9bd7b6931a88e2621427082088c4b3db896e3943b9cf0745732d1e63f" => :mavericks
   end
 
   depends_on "ghc" => :build
