@@ -78,6 +78,9 @@ class FormulaInstaller
 
     return false if @pour_failed
 
+    # No bottles on Linux for now (local)
+    return false if OS.linux?
+
     bottle = formula.bottle
     return false unless bottle
     return true  if force_bottle?
