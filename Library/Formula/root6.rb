@@ -1,9 +1,9 @@
 class Root6 < Formula
   homepage "http://root.cern.ch"
-  version "6.06.00"
+  version "6.06.02"
   url "http://root.cern.ch/download/root_v#{version}.source.tar.gz"
   mirror "https://fossies.org/linux/misc/root_v#{version}.source.tar.gz"
-  sha256 "96e460883a3a0f350beda732364b8091b2bd98e1e953e0d86a51eeba19a0edcb"
+  sha256 "18a4ce42ee19e1a810d5351f74ec9550e6e422b13b5c58e0c3db740cdbc569d1"
   head "http://root.cern.ch/git/root.git"
 
   depends_on "cmake" => :build
@@ -11,7 +11,7 @@ class Root6 < Formula
   depends_on "openssl" => :optional
   depends_on "sqlite3" => :recommended
   depends_on "tbb" => [:optional, 'c++11']
-  depends_on "xrootd" => [:optional, 'cxx11']
+  depends_on "xrootd" => [:optional, 'c++11']
   depends_on :python => :recommended
   depends_on :x11 => :recommended if OS.linux?
 
